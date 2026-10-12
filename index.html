@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>理农通 · 理县乡村经营助手</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f6f78'/%3E%3Cpath d='M32 12 L50 22 V34 C50 45 42 51 32 54 C22 51 14 45 14 34 V22 Z' fill='none' stroke='%23f8f5ee' stroke-width='3.4'/%3E%3Cpath d='M32 24v18M25 31l7-7 7 7' stroke='%23c08a2e' stroke-width='3.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<script src="echarts.min.js"></script>
+<style>
+:root{
+  --ink:#22302e; --ink-soft:#5b6c69; --ink-faint:#8a9895;
+  --teal-900:#123c42; --teal-800:#16484f; --teal-700:#1f6f78; --teal-600:#2a838c; --teal-500:#3b9aa3;
+  --teal-100:#e2f0ee; --teal-50:#f0f6f5;
+  --red:#b4452f; --red-dark:#93341f; --red-50:#f8ece8;
+  --gold:#bd862c; --gold-50:#f8f1e1;
+  --green:#557a4f; --green-50:#eef3ea;
+  --paper:#f7f4ec; --card:#ffffff; --line:#e5dfd2; --line-soft:#efeadd;
+  --serif:"Noto Serif SC", "Songti SC", serif;
+  --sans:"Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --shadow:0 1px 2px rgba(18,60,66,.05), 0 8px 24px -12px rgba(18,60,66,.18);
+  --shadow-lg:0 4px 12px rgba(18,60,66,.08), 0 24px 48px -20px rgba(18,60,66,.28);
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--ink);background:var(--paper);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+::selection{background:var(--teal-100)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ===== 藏式纹样分隔 ===== */
+.ornament{display:flex;align-items:center;gap:12px;color:var(--gold);margin:6px 0}
+.ornament::before,.ornament::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--line) 30%,var(--line) 70%,transparent)}
+.ornament svg{flex:none}
+
+/* ===== 布局 ===== */
+.app{display:flex;min-height:100vh}
+.sidebar{width:236px;flex:none;background:linear-gradient(180deg,var(--teal-900),var(--teal-800) 60%,#10353b);color:#dce9e7;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;z-index:60;overflow-y:auto}
+.brand{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.09)}
+.brand-row{display:flex;align-items:center;gap:11px}
+.brand-badge{width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;flex:none}
+.brand-name{font-family:var(--serif);font-weight:700;font-size:21px;color:#fff;letter-spacing:2px;line-height:1.1}
+.brand-sub{font-size:11px;color:#9fc0bc;letter-spacing:1.4px;margin-top:3px}
+.nav{padding:14px 12px;flex:1}
+.nav-group{font-size:11px;color:#7fa6a2;letter-spacing:2px;padding:14px 12px 7px}
+.nav-item{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border-radius:9px;color:#cfe1de;font-size:14.5px;margin:2px 0;text-align:left;transition:all .18s;position:relative}
+.nav-item svg{width:18px;height:18px;flex:none;opacity:.85}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:#fff;color:var(--teal-800);font-weight:600;box-shadow:0 4px 14px -4px rgba(0,0,0,.4)}
+.nav-item.active svg{opacity:1}
+.side-foot{padding:14px 18px 18px;border-top:1px solid rgba(255,255,255,.09);font-size:11px;color:#8fb0ac;line-height:1.6}
+.side-foot .team{color:#cfe1de;font-weight:500;margin-bottom:3px}
+.side-badge{display:inline-block;margin-top:8px;padding:2px 8px;border:1px solid rgba(208,170,90,.5);color:#e3c27e;border-radius:20px;font-size:10px}
+
+.main{flex:1;margin-left:236px;min-width:0}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(247,244,236,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1180px;margin:0 auto;padding:11px 28px;display:flex;align-items:center;gap:14px}
+.crumb{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--teal-900)}
+.crumb small{font-family:var(--sans);font-weight:400;font-size:12px;color:var(--ink-faint);margin-left:10px;letter-spacing:.5px}
+.top-actions{margin-left:auto;display:flex;gap:9px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 17px;border-radius:9px;font-size:14px;font-weight:500;transition:all .18s;white-space:nowrap}
+.btn svg{width:16px;height:16px}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:var(--red-dark);transform:translateY(-1px);box-shadow:0 6px 16px -6px rgba(180,69,47,.6)}
+.btn-ghost{border:1px solid var(--line);background:var(--card);color:var(--ink-soft)}
+.btn-ghost:hover{border-color:var(--teal-600);color:var(--teal-700)}
+.btn-teal{background:var(--teal-700);color:#fff}
+.btn-teal:hover{background:var(--teal-800)}
+.btn-lg{padding:13px 26px;font-size:15.5px;border-radius:11px}
+.btn-sm{padding:6px 13px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.view{display:none;padding:30px 0 64px;animation:fade .35s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view-head{margin-bottom:22px}
+.view-title{font-family:var(--serif);font-weight:700;font-size:27px;color:var(--teal-900);letter-spacing:1px;display:flex;align-items:center;gap:13px}
+.view-title .vt-tag{font-family:var(--sans);font-size:11px;font-weight:500;color:var(--gold);border:1px solid var(--gold);border-radius:5px;padding:2px 8px;letter-spacing:1px}
+.view-desc{color:var(--ink-soft);font-size:14px;margin-top:7px;max-width:760px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:22px 24px}
+.card-title{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--teal-900);margin-bottom:14px;display:flex;align-items:center;gap:9px}
+.card-title::before{content:"";width:4px;height:16px;background:var(--red);border-radius:2px;flex:none}
+.grid{display:grid;gap:18px}
+.note{font-size:12px;color:var(--ink-faint);line-height:1.6}
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.tag-teal{background:var(--teal-100);color:var(--teal-700)}
+.tag-red{background:var(--red-50);color:var(--red)}
+.tag-gold{background:var(--gold-50);color:var(--gold)}
+.tag-green{background:var(--green-50);color:var(--green)}
+.tag-gray{background:#f0efe9;color:var(--ink-soft)}
+
+/* ===== 首页 hero ===== */
+.hero{position:relative;border-radius:18px;overflow:hidden;margin-bottom:26px;box-shadow:var(--shadow-lg);background:var(--teal-900)}
+.hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 28%;opacity:.55}
+.hero-mask{position:absolute;inset:0;background:linear-gradient(100deg,rgba(14,46,51,.92) 0%,rgba(18,60,66,.72) 42%,rgba(18,60,66,.28) 100%)}
+.hero-inner{position:relative;padding:54px 50px 50px;max-width:640px;color:#fff}
+.hero-kicker{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;letter-spacing:3px;color:#e3c27e;border:1px solid rgba(227,194,126,.55);padding:4px 13px;border-radius:20px;margin-bottom:18px}
+.hero h1{font-family:var(--serif);font-weight:900;font-size:40px;line-height:1.25;letter-spacing:2px}
+.hero h1 .accent{color:#f0c978}
+.hero p{margin:15px 0 26px;font-size:15.5px;color:#d7e5e3;line-height:1.9}
+.hero-btns{display:flex;gap:13px;flex-wrap:wrap}
+.hero .btn-primary{background:var(--red)}
+.hero .btn-white{background:#fff;color:var(--teal-800)}
+.hero .btn-white:hover{background:#f3efe4}
+.hero-stats{position:absolute;right:36px;bottom:30px;display:flex;gap:26px;text-align:center}
+.hero-stat .num{font-family:var(--serif);font-size:27px;font-weight:700;color:#f0c978}
+.hero-stat .lab{font-size:11.5px;color:#bcd2cf;letter-spacing:1px;margin-top:2px}
+
+/* 核心工具卡 */
+.tools-head{display:flex;align-items:baseline;justify-content:space-between;margin:6px 2px 15px}
+.tools-head h2{font-family:var(--serif);font-size:21px;color:var(--teal-900);letter-spacing:1px}
+.tools-head span{font-size:12.5px;color:var(--ink-faint)}
+.tool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
+.tool-card.wide{grid-column:span 2}
+.tool-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:21px 19px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.tool-card::after{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:var(--bar,var(--teal-600));transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.tool-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:transparent}
+.tool-card:hover::after{transform:scaleX(1)}
+.tool-ico{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:13px}
+.tool-ico svg{width:24px;height:24px}
+.tool-card h3{font-family:var(--serif);font-size:17px;color:var(--teal-900);margin-bottom:6px}
+.tool-card p{font-size:12.8px;color:var(--ink-soft);line-height:1.65;min-height:42px}
+.tool-go{margin-top:11px;font-size:12.5px;color:var(--teal-700);font-weight:500;display:inline-flex;align-items:center;gap:4px}
+
+/* 指标卡 */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden}
+.kpi .k-lab{font-size:12.5px;color:var(--ink-soft)}
+.kpi .k-num{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--teal-800);line-height:1.2;margin-top:3px}
+.kpi .k-num small{font-size:14px;font-weight:400;color:var(--ink-faint);font-family:var(--sans)}
+.kpi .k-trend{font-size:12px;margin-top:4px}
+.kpi .k-trend.up{color:var(--green)}
+.kpi .k-trend.warn{color:var(--red)}
+.kpi .k-ico{position:absolute;right:14px;top:15px;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;opacity:.9}
+.kpi .k-ico svg{width:19px;height:19px}
+
+.home-cols{display:grid;grid-template-columns:1.25fr .9fr;gap:18px}
+.alert-list .alert-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line-soft)}
+.alert-list .alert-item:last-child{border-bottom:none}
+.alert-dot{width:8px;height:8px;border-radius:50%;margin-top:8px;flex:none}
+.alert-item h4{font-size:14px;font-weight:600;color:var(--ink)}
+.alert-item p{font-size:12.5px;color:var(--ink-soft);margin-top:1px}
+.mini-product{display:flex;gap:13px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line-soft)}
+.mini-product:last-child{border-bottom:none}
+.mini-product img{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none}
+.mini-product .mp-info{flex:1;min-width:0}
+.mini-product h4{font-size:14px;font-weight:600}
+.mini-product .mp-meta{font-size:12px;color:var(--ink-faint)}
+.mini-product .mp-status{font-size:11.5px;flex:none}
+
+/* ===== 通用：产品选择条 ===== */
+.pill-row{display:flex;gap:10px;flex-wrap:wrap}
+.pill{padding:8px 18px;border-radius:24px;border:1px solid var(--line);background:var(--card);font-size:14px;color:var(--ink-soft);transition:all .18s;display:inline-flex;align-items:center;gap:7px}
+.pill:hover{border-color:var(--teal-500);color:var(--teal-700)}
+.pill.active{background:var(--teal-700);border-color:var(--teal-700);color:#fff;font-weight:500}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.5}
+.field-label{font-size:13px;font-weight:600;color:var(--teal-900);margin:16px 0 8px;display:block}
+.field-label:first-child{margin-top:0}
+.input,.select,.textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 13px;background:#fdfcf9;font-size:14px;transition:border .15s}
+.input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--teal-500);background:#fff}
+.textarea{resize:vertical;min-height:74px;line-height:1.7}
+.check-row{display:flex;flex-wrap:wrap;gap:9px}
+.check-chip{padding:7px 14px;border-radius:20px;border:1px solid var(--line);background:#fdfcf9;font-size:13px;color:var(--ink-soft);cursor:pointer;transition:all .15s;user-select:none}
+.check-chip.on{background:var(--teal-100);border-color:var(--teal-600);color:var(--teal-800);font-weight:500}
+
+/* ===== 产品档案 ===== */
+.prod-detail{display:none}
+.prod-detail.active{display:block;animation:fade .3s}
+.prod-hero{display:grid;grid-template-columns:340px 1fr;gap:26px;margin-bottom:18px}
+.prod-photo{position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);height:340px}
+.prod-photo img{width:100%;height:100%;object-fit:cover}
+.prod-photo .ph-status{position:absolute;top:14px;left:14px}
+.prod-photo .ph-name{position:absolute;left:0;right:0;bottom:0;padding:34px 18px 14px;background:linear-gradient(transparent,rgba(12,40,44,.82));color:#fff}
+.prod-photo .ph-name h3{font-family:var(--serif);font-size:21px;letter-spacing:1px}
+.prod-photo .ph-name p{font-size:12.5px;color:#d5e3e1;margin-top:2px}
+.prod-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.prod-gallery img{height:96px;width:100%;object-fit:cover;border-radius:9px;cursor:pointer;border:1px solid var(--line)}
+.prod-gallery img:hover{opacity:.86}
+.info-table{width:100%;border-collapse:collapse}
+.info-table th{width:88px;text-align:left;vertical-align:top;color:var(--ink-faint);font-weight:500;font-size:13px;padding:9px 10px 9px 0;border-bottom:1px dashed var(--line-soft)}
+.info-table td{padding:9px 0;border-bottom:1px dashed var(--line-soft);font-size:14px}
+.sellpoint{display:flex;gap:10px;margin-bottom:11px;align-items:flex-start}
+.sellpoint .sp-num{width:23px;height:23px;border-radius:7px;background:var(--teal-700);color:#fff;font-size:12.5px;display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px}
+.story-box{background:linear-gradient(135deg,var(--teal-50),#fbf7ec);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:11px;padding:15px 18px;font-size:13.8px;color:#4a5a57;line-height:1.85;margin-top:16px}
+.story-box b{color:var(--teal-800)}
+.cal-row{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin-top:10px}
+.cal-cell{text-align:center;font-size:11px;color:var(--ink-faint);padding-top:22px;position:relative}
+.cal-cell::before{content:"";position:absolute;top:0;left:15%;right:15%;height:9px;border-radius:4px;background:#eee9dc}
+.cal-cell.hot::before{background:var(--red)}
+.cal-cell.pre::before{background:var(--gold)}
+.cal-cell.sell::before{background:var(--teal-600)}
+.cal-legend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--ink-soft)}
+.cal-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ===== 生成结果 ===== */
+.gen-layout{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
+.result-box{background:#fdfcf9;border:1px solid var(--line);border-radius:12px;padding:20px 22px;min-height:240px;position:relative}
+.result-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:260px;color:var(--ink-faint);text-align:center;gap:12px}
+.result-empty svg{width:52px;height:52px;opacity:.4}
+.copy-content{white-space:pre-wrap;font-size:14.3px;line-height:2;color:var(--ink)}
+.copy-content .cp-h{font-family:var(--serif);font-weight:700;color:var(--teal-800);font-size:16px}
+.platform-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.result-actions{display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}
+.compliance-line{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:8px 12px;border-radius:8px;margin-top:14px}
+.compliance-line.ok{background:var(--green-50);color:var(--green)}
+.compliance-line.warn{background:var(--gold-50);color:var(--gold)}
+.typing::after{content:"▍";color:var(--teal-600);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ===== 视频脚本 ===== */
+.shot-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+.shot-table th{background:var(--teal-800);color:#fff;font-weight:500;padding:10px 12px;text-align:left;font-size:13px}
+.shot-table th:first-child{border-radius:9px 0 0 0}
+.shot-table th:last-child{border-radius:0 9px 0 0}
+.shot-table td{padding:12px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.shot-table tr:nth-child(even) td{background:#faf8f2}
+.shot-no{font-family:var(--serif);font-weight:700;color:var(--red);font-size:15px;width:44px}
+.shot-time{color:var(--ink-faint);font-size:12px;width:64px;padding-top:14px!important}
+.script-tags{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.script-tags .tag{font-family:inherit}
+.title-option{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line-soft);font-size:14px}
+.title-option:last-child{border:none}
+.title-option .t-badge{background:var(--red);color:#fff;font-size:11px;padding:2px 8px;border-radius:5px;flex:none}
+.props-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 20px;margin-top:8px}
+.props-grid li{font-size:13.3px;color:var(--ink-soft);list-style:none;display:flex;gap:8px}
+.props-grid li::before{content:"◆";color:var(--gold);font-size:10px;margin-top:5px}
+
+/* ===== 看板 ===== */
+.chart-card{padding:18px 20px 10px}
+.chart{width:100%;height:280px}
+.chart-sm{height:250px}
+.dash-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:18px}
+.stock-row{display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px dashed var(--line-soft)}
+.stock-row:last-child{border:none}
+.stock-name{width:96px;font-size:13.5px;font-weight:500;flex:none}
+.stock-bar{flex:1;height:9px;background:#efeadd;border-radius:5px;overflow:hidden}
+.stock-bar i{display:block;height:100%;border-radius:5px}
+.stock-val{width:120px;text-align:right;font-size:12.5px;color:var(--ink-soft);flex:none}
+
+/* ===== 定价 ===== */
+.cost-row{display:grid;grid-template-columns:1fr 120px 46px;gap:10px;align-items:center;margin-bottom:9px}
+.cost-row input{text-align:right}
+.cost-row .c-unit{font-size:12px;color:var(--ink-faint)}
+.range-row{margin:18px 0}
+.range-row input[type=range]{width:100%;accent-color:var(--red)}
+.range-marks{display:flex;justify:space-between;font-size:11.5px;color:var(--ink-faint);margin-top:3px}
+.price-result{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.price-box{background:var(--teal-50);border-radius:11px;padding:14px;text-align:center}
+.price-box .pb-lab{font-size:12px;color:var(--ink-soft)}
+.price-box .pb-num{font-family:var(--serif);font-size:23px;font-weight:700;color:var(--teal-800);margin-top:2px}
+.price-box.highlight{background:var(--red);}
+.price-box.highlight .pb-lab,.price-box.highlight .pb-num{color:#fff}
+
+/* ===== 合规 ===== */
+.risk-item{display:flex;gap:12px;padding:13px;border-radius:10px;margin-bottom:10px;font-size:13.6px;line-height:1.7}
+.risk-item.high{background:var(--red-50);border:1px solid #e6c3b8}
+.risk-item.mid{background:var(--gold-50);border:1px solid #e8d6ad}
+.risk-item.ok{background:var(--green-50);border:1px solid #cdddc4}
+.risk-badge{flex:none;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.risk-item.high .risk-badge{background:var(--red);color:#fff}
+.risk-item.mid .risk-badge{background:var(--gold);color:#fff}
+.risk-item.ok .risk-badge{background:var(--green);color:#fff}
+.risk-item .r-quote{color:var(--red-dark);font-weight:600}
+.risk-item .r-fix{color:var(--green);margin-top:3px}
+.rule-list li{list-style:none;font-size:13.3px;padding:8px 0 8px 26px;position:relative;border-bottom:1px dashed var(--line-soft);color:var(--ink-soft);line-height:1.6}
+.rule-list li::before{content:"";position:absolute;left:2px;top:14px;width:9px;height:9px;border-radius:50%}
+.rule-list li.no::before{background:var(--red)}
+.rule-list li.yes::before{background:var(--green)}
+
+/* ===== 调研洞察 ===== */
+.insight-hero{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.ins-stat{background:var(--teal-800);color:#fff;border-radius:var(--radius);padding:18px 16px;text-align:center}
+.ins-stat .n{font-family:var(--serif);font-size:30px;font-weight:700;color:#f0c978}
+.ins-stat .l{font-size:12.3px;color:#cfe1de;margin-top:3px;line-height:1.5}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ins-conclusion{background:var(--gold-50);border-left:4px solid var(--gold);border-radius:0 10px 10px 0;padding:12px 16px;font-size:13.3px;color:#5c5238;line-height:1.8;margin-top:10px}
+.ins-conclusion b{color:var(--teal-900)}
+
+/* ===== 传承 ===== */
+.timeline{position:relative;margin:10px 0 8px}
+.tl-item{display:grid;grid-template-columns:150px 30px 1fr;gap:0;margin-bottom:6px}
+.tl-year{font-family:var(--serif);font-size:19px;font-weight:700;color:var(--teal-800);text-align:right;padding-right:18px;padding-top:14px}
+.tl-year small{display:block;font-family:var(--sans);font-size:11.5px;color:var(--ink-faint);font-weight:400;margin-top:2px}
+.tl-axis{position:relative;display:flex;justify-content:center}
+.tl-axis::before{content:"";position:absolute;top:0;bottom:-22px;width:2px;background:var(--line)}
+.tl-item:last-child .tl-axis::before{display:none}
+.tl-dot{width:16px;height:16px;border-radius:50%;background:var(--teal-600);border:3px solid var(--paper);box-shadow:0 0 0 2px var(--teal-600);margin-top:18px;z-index:1;flex:none}
+.tl-item.now .tl-dot{background:var(--red);box-shadow:0 0 0 2px var(--red)}
+.tl-item.future .tl-dot{background:#fff;box-shadow:0 0 0 2px var(--gold)}
+.tl-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 19px;margin:6px 0 20px;box-shadow:var(--shadow)}
+.tl-card h4{font-family:var(--serif);font-size:16px;color:var(--teal-900);margin-bottom:6px}
+.tl-card p{font-size:13.3px;color:var(--ink-soft);line-height:1.8}
+.tl-card .tl-tags{margin-top:9px;display:flex;gap:7px;flex-wrap:wrap}
+.mech-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:14px 0;counter-reset:m}
+.mech-step{text-align:center;position:relative;padding:0 8px}
+.mech-step:not(:last-child)::after{content:"";position:absolute;top:26px;right:-9px;width:18px;height:2px;background:var(--gold)}
+.mech-ico{width:52px;height:52px;border-radius:50%;background:var(--teal-100);border:2px solid var(--teal-600);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-family:var(--serif);font-weight:700;font-size:19px;color:var(--teal-700)}
+.mech-step h5{font-size:14px;color:var(--teal-900);margin-bottom:3px}
+.mech-step p{font-size:11.8px;color:var(--ink-faint);line-height:1.5}
+.photo-wall{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:150px;gap:12px;margin-top:8px}
+.photo-wall .pw{position:relative;border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.photo-wall .pw img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.photo-wall .pw:hover img{transform:scale(1.05)}
+.photo-wall .pw.big{grid-column:span 2;grid-row:span 2}
+.photo-wall .pw .cap{position:absolute;left:0;right:0;bottom:0;padding:22px 13px 10px;background:linear-gradient(transparent,rgba(10,32,36,.82));color:#fff;font-size:12.3px}
+.recruit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+.recruit-card{border:1px solid var(--line);border-radius:12px;padding:17px;background:#fdfcf9;text-align:center}
+.recruit-card .r-ico{width:44px;height:44px;margin:0 auto 10px;border-radius:50%;background:var(--red-50);display:flex;align-items:center;justify-content:center}
+.recruit-card .r-ico svg{width:22px;height:22px}
+.recruit-card h5{font-size:14.5px;color:var(--teal-900);margin-bottom:4px}
+.recruit-card p{font-size:12.3px;color:var(--ink-soft);line-height:1.6}
+
+/* ===== toast / 演示引导 / 抽屉 ===== */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--teal-900);color:#fff;padding:11px 22px;border-radius:24px;font-size:14px;box-shadow:var(--shadow-lg);opacity:0;visibility:hidden;pointer-events:none;transition:all .3s;z-index:200;display:flex;align-items:center;gap:9px}
+.toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+.toast svg{width:17px;height:17px;color:#8fd0c8}
+.guide{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);width:min(560px,calc(100vw - 40px));background:var(--teal-900);color:#fff;border-radius:14px;box-shadow:0 20px 60px -10px rgba(0,0,0,.5);padding:16px 20px;z-index:150;transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .3s;border:1px solid rgba(240,201,120,.3);visibility:hidden;opacity:0;pointer-events:none}
+.guide.show{transform:translateX(-50%) translateY(0);visibility:visible;opacity:1;pointer-events:auto}
+.guide-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.guide-step{font-size:11px;color:#f0c978;letter-spacing:1.5px;flex:none}
+.guide-title{font-family:var(--serif);font-size:16px;font-weight:600}
+.guide p{font-size:13px;color:#c8dbd8;line-height:1.7}
+.guide-actions{display:flex;gap:9px;margin-top:12px;justify-content:flex-end}
+.guide .btn{padding:7px 16px;font-size:13px;border-radius:8px}
+.guide .btn-skip{color:#9fc0bc;background:none}
+.guide .btn-skip:hover{color:#fff}
+.guide .btn-next{background:var(--red);color:#fff}
+.spotlight{position:relative;z-index:141;box-shadow:0 0 0 4px rgba(240,201,120,.85),0 0 0 9999px rgba(10,30,34,.45)!important;border-radius:12px;transition:box-shadow .3s;pointer-events:none}
+.menu-toggle{display:none}
+.side-close{display:none}
+
+footer.page-foot{border-top:1px solid var(--line);margin-top:10px;padding:22px 0 30px;text-align:center;color:var(--ink-faint);font-size:12px;line-height:2}
+.page-foot .pf-logos{margin-bottom:7px;letter-spacing:1px;color:var(--ink-soft)}
+
+/* ===== 响应式 ===== */
+@media (max-width:1080px){
+  .tool-grid{grid-template-columns:repeat(2,1fr)}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .gen-layout,.prod-hero,.dash-grid,.ins-grid,.home-cols{grid-template-columns:1fr}
+  .prod-photo{height:300px}
+  .insight-hero{grid-template-columns:repeat(2,1fr)}
+  .mech-grid{grid-template-columns:repeat(3,1fr);gap:18px 8px}
+  .mech-step:nth-child(3)::after{display:none}
+  .hero-stats{display:none}
+}
+@media (max-width:820px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s;box-shadow:var(--shadow-lg)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .menu-toggle{display:inline-flex}
+  .side-close{display:block;position:absolute;top:14px;right:14px;color:#cfe1de;font-size:22px;z-index:2}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+  .scrim.show{display:block}
+  .hero-inner{padding:38px 26px 34px}
+  .hero h1{font-size:30px}
+  .wrap{padding:0 16px}
+  .topbar-inner{padding:10px 16px}
+  .photo-wall{grid-template-columns:1fr 1fr;grid-auto-rows:130px}
+  .recruit-grid{grid-template-columns:1fr}
+  .tl-item{grid-template-columns:96px 24px 1fr}
+  .tl-year{font-size:15px;padding-right:10px}
+  .crumb small{display:none}
+}
+@media (max-width:560px){
+  .tool-grid,.kpi-grid{grid-template-columns:1fr}
+  .tool-grid{grid-auto-rows:min-content}
+  .tool-card{min-height:0}
+  .tool-card p{min-height:0}
+  .tools-head{flex-direction:column;align-items:flex-start;gap:5px;margin-bottom:12px}
+  .tools-head span{line-height:1.5}
+  .tool-card.wide{grid-column:auto}
+  .prod-gallery{grid-template-columns:repeat(3,1fr)}
+  .price-result{grid-template-columns:1fr}
+  .props-grid{grid-template-columns:1fr}
+  .mech-grid{grid-template-columns:1fr}
+  .mech-step::after{display:none!important}
+  .photo-wall{grid-template-columns:1fr;grid-auto-rows:160px}
+  .photo-wall .pw.big{grid-row:span 1;grid-column:auto}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- ===================== 侧边导航 ===================== -->
+<aside class="sidebar" id="sidebar">
+  <button class="side-close" onclick="toggleSide(false)" aria-label="关闭菜单">×</button>
+  <div class="brand">
+    <div class="brand-row">
+      <div class="brand-badge">
+        <svg width="24" height="24" viewBox="0 0 64 64" fill="none"><path d="M32 10 L52 21 V35 C52 47 43 53 32 57 C21 53 12 47 12 35 V21 Z" stroke="#f0c978" stroke-width="3.6" fill="none"/><path d="M32 24v20M25 33l7-7 7 7" stroke="#dce9e7" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">理农通</div>
+        <div class="brand-sub">理县乡村经营助手</div>
+      </div>
+    </div>
+  </div>
+  <nav class="nav" id="nav">
+    <div class="nav-group">经 营</div>
+    <button class="nav-item active" data-view="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>首页总览</button>
+    <div class="nav-group">助 农 工 具</div>
+    <button class="nav-item" data-view="products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7c0 6 4 10 8 10s8-4 8-10M4 7h16M4 7c0-2 2-3 4-3h8c2 0 4 1 4 3M9 11h6"/></svg>产品档案</button>
+    <button class="nav-item" data-view="copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>智能文案</button>
+    <button class="nav-item" data-view="video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg>短视频脚本</button>
+    <button class="nav-item" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg>经营看板</button>
+    <button class="nav-item" data-view="pricing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.2 1.1-2 2.5-2s2.5.8 2.5 2-1.1 1.8-2.5 2-2.5.8-2.5 2 1.1 2 2.5 2 2.5-.8 2.5-2"/></svg>成本定价</button>
+    <button class="nav-item" data-view="compliance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg>合规检查</button>
+    <div class="nav-group">项 目</div>
+    <button class="nav-item" data-view="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9M21 3v6h-6"/><path d="M9 12l2 2 4-4"/></svg>调研洞察</button>
+    <button class="nav-item" data-view="legacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M8 6c-2 1-3 3-3 5s1 4 3 5M16 6c2 1 3 3 3 5s-1 4-3 5"/></svg>年度传承</button>
+  </nav>
+  <div class="side-foot">
+    <div class="team">西南财经大学<br>特拉华数智兴村实践队</div>
+    <div>2026 暑期「三下乡」社会实践</div>
+    <span class="side-badge">原型演示 · 模拟样例数据</span>
+  </div>
+</aside>
+<div class="scrim" id="scrim" onclick="toggleSide(false)"></div>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="btn btn-ghost btn-sm menu-toggle" onclick="toggleSide(true)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>菜单
+      </button>
+      <div class="crumb" id="crumb">首页总览<small>理农通 · 理县乡村经营助手</small></div>
+      <div class="top-actions">
+        <button class="btn btn-ghost btn-sm" onclick="resetDemo()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>重置演示
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="startGuide(0)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 4 20 12 6 20 6 4"/></svg>60 秒演示
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+<!-- ===================== 视图：首页总览 ===================== -->
+<section class="view active" id="view-home">
+  <div class="hero">
+    <img class="hero-img" src="assets/hero-valley.jpg" alt="理县古尔沟山谷农田">
+    <div class="hero-mask"></div>
+    <div class="hero-inner">
+      <span class="hero-kicker">四川阿坝 · 理县藏羌村寨</span>
+      <h1>把山里的好货，<br><span class="accent">讲清楚、卖出去、记得住</span></h1>
+      <p>「理农通」是为理县农户准备的乡村经营助手：管产品、写文案、出脚本、算成本、看数据、守合规，一部手机就能把自家农特产品的线上生意做起来。</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary btn-lg" onclick="startGuide(0)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          开始 60 秒演示
+        </button>
+        <button class="btn btn-white btn-lg" onclick="goView('copy')">亲手写一条文案</button>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">3</div><div class="lab">建档特色产品</div></div>
+      <div class="hero-stat"><div class="num">6</div><div class="lab">助农工具</div></div>
+      <div class="hero-stat"><div class="num">2</div><div class="lab">年持续陪伴</div></div>
+    </div>
+  </div>
+
+  <div class="tools-head">
+    <h2>六个工具，解决一件事</h2>
+    <span>点击任意卡片即可体验，数据已预置，无需手动输入</span>
+  </div>
+  <div class="tool-grid">
+    <div class="tool-card" style="--bar:#1f6f78" onclick="goView('copy')">
+      <div class="tool-ico" style="background:var(--teal-100)"><svg viewBox="0 0 24 24" fill="none" stroke="#1f6f78" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+      <h3>智能文案</h3>
+      <p>选好产品和平台，自动生成朋友圈、抖音、小红书等不同风格的宣传文案。</p>
+      <span class="tool-go">去写文案 ›</span>
+    </div>
+    <div class="tool-card" style="--bar:#b4452f" onclick="goView('video')">
+      <div class="tool-ico" style="background:var(--red-50)"><svg viewBox="0 0 24 24" fill="none" stroke="#b4452f" stroke-width="2"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg></div>
+      <h3>短视频脚本</h3>
+      <p>一键产出分镜、口播、标题和话题标签，照着拍就能发，解决不会拍视频。</p>
+      <span class="tool-go">去出脚本 ›</span>
+    </div>
+    <div class="tool-card" style="--bar:#bd862c" onclick="goView('dashboard')">
+      <div class="tool-ico" style="background:var(--gold-50)"><svg viewBox="0 0 24 24" fill="none" stroke="#bd862c" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg></div>
+      <h3>经营看板</h3>
+      <p>订单、销量、渠道、库存一屏看清，不再只凭记忆和聊天记录算账。</p>
+      <span class="tool-go">去看数据 ›</span>
+    </div>
+    <div class="tool-card" style="--bar:#557a4f" onclick="goView('pricing')">
+      <div class="tool-ico" style="background:var(--green-50)"><svg viewBox="0 0 24 24" fill="none" stroke="#557a4f" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4M9.5 14.5h4"/></svg></div>
+      <h3>成本定价</h3>
+      <p>把采摘、包装、快递、损耗逐项算清，给出建议售价和盈亏平衡点。</p>
+      <span class="tool-go">去算价格 ›</span>
+    </div>
+    <div class="tool-card wide" style="--bar:#16484f" onclick="goView('products')">
+      <div class="tool-ico" style="background:var(--teal-100)"><svg viewBox="0 0 24 24" fill="none" stroke="#16484f" stroke-width="2"><path d="M4 7c0 6 4 10 8 10s8-4 8-10M4 7h16M9 11h6"/></svg></div>
+      <h3>产品档案</h3>
+      <p>产地、季节、规格、卖点、故事，一户一档，是所有文案与数据的源头。</p>
+      <span class="tool-go">查看档案 ›</span>
+    </div>
+    <div class="tool-card wide" style="--bar:#93341f" onclick="goView('compliance')">
+      <div class="tool-ico" style="background:var(--red-50)"><svg viewBox="0 0 24 24" fill="none" stroke="#93341f" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6Z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <h3>合规检查</h3>
+      <p>自动识别夸大功效、绝对化用语，逐条提示修改，虫草等产品发布前先扫一遍。</p>
+      <span class="tool-go">检查文案 ›</span>
+    </div>
+  </div>
+
+  <div class="kpi-grid" style="margin-top:26px">
+    <div class="kpi">
+      <div class="k-ico" style="background:var(--teal-100)"><svg viewBox="0 0 24 24" fill="none" stroke="#1f6f78" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18M16 10a4 4 0 0 1-8 0"/></svg></div>
+      <div class="k-lab">本月订单（模拟）</div>
+      <div class="k-num">186 <small>单</small></div>
+      <div class="k-trend up">▲ 西梅上市季环比 +62%</div>
+    </div>
+    <div class="kpi">
+      <div class="k-ico" style="background:var(--gold-50)"><svg viewBox="0 0 24 24" fill="none" stroke="#bd862c" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="k-lab">本月销售额（模拟）</div>
+      <div class="k-num">3.62 <small>万元</small></div>
+      <div class="k-trend up">▲ 线上订单占比过半</div>
+    </div>
+    <div class="kpi">
+      <div class="k-ico" style="background:var(--green-50)"><svg viewBox="0 0 24 24" fill="none" stroke="#557a4f" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div class="k-lab">待发货</div>
+      <div class="k-num">12 <small>单</small></div>
+      <div class="k-trend" style="color:var(--ink-faint)">今日打包发出即可</div>
+    </div>
+    <div class="kpi">
+      <div class="k-ico" style="background:var(--red-50)"><svg viewBox="0 0 24 24" fill="none" stroke="#b4452f" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4M12 17h.01"/></svg></div>
+      <div class="k-lab">库存预警</div>
+      <div class="k-num">800 <small>斤核桃待销</small></div>
+      <div class="k-trend warn">● 新货下树，需尽快铺开宣传</div>
+    </div>
+  </div>
+
+  <div class="home-cols">
+    <div class="card card-pad">
+      <div class="card-title">三个产品，三种经营状态</div>
+      <div class="mini-product" onclick="goView('products')" style="cursor:pointer">
+        <img src="assets/ximei-cut.jpg" alt="高山西梅">
+        <div class="mp-info"><h4>高山西梅</h4><div class="mp-meta">古尔沟 · 8 月中下旬上市 · 5 斤礼盒</div></div>
+        <span class="tag tag-green mp-status">● 已上线热销</span>
+      </div>
+      <div class="mini-product" onclick="goView('products')" style="cursor:pointer">
+        <img src="assets/chongcao-gift.jpg" alt="冬虫夏草">
+        <div class="mp-info"><h4>冬虫夏草礼盒</h4><div class="mp-meta">高海拔采挖 · 干品全年可售 · 熟客订单</div></div>
+        <span class="tag tag-green mp-status">● 已上线销售</span>
+      </div>
+      <div class="mini-product" onclick="goView('products')" style="cursor:pointer">
+        <img src="assets/hetao-bag.jpg" alt="高山干核桃">
+        <div class="mp-info"><h4>高山干核桃</h4><div class="mp-meta">新货下树 · 可储至次年 · 散装 / 礼盒</div></div>
+        <span class="tag tag-gold mp-status">● 宣传筹备中</span>
+      </div>
+      <div class="note" style="margin-top:12px">产品信息来自实践队 2026 年 7 月入户访谈与农户朋友圈素材，价格与销量为原型演示样例。</div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title">今日经营提醒</div>
+      <div class="alert-list">
+        <div class="alert-item"><span class="alert-dot" style="background:var(--red)"></span><div><h4>核桃宣传要赶早</h4><p>新货已脱皮晾干，建议本周用「短视频脚本」拍 3 条开箱视频。</p></div></div>
+        <div class="alert-item"><span class="alert-dot" style="background:var(--gold)"></span><div><h4>西梅临近下市</h4><p>本季果子不多了，可发一条「最后一批」朋友圈收口。</p></div></div>
+        <div class="alert-item"><span class="alert-dot" style="background:var(--teal-600)"></span><div><h4>虫草文案先过合规</h4><p>礼品订单文案中避免疗效表述，发送前用「合规检查」扫一遍。</p></div></div>
+        <div class="alert-item"><span class="alert-dot" style="background:var(--green)"></span><div><h4>中秋礼盒可提前备货</h4><p>虫草、核桃组合礼盒适合节庆，提前准备包装与产地卡。</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 视图：产品档案 ===================== -->
+<section class="view" id="view-products">
+  <div class="view-head">
+    <div class="view-title">产品档案 <span class="vt-tag">一户一档</span></div>
+    <div class="view-desc">把每个产品的产地、季节、规格、卖点和故事固定下来，文案、脚本、定价工具都会自动读取这里的信息。</div>
+  </div>
+  <div class="pill-row" style="margin-bottom:20px" id="prodPills">
+    <button class="pill active" data-prod="ximei" onclick="switchProd('ximei')"><span class="dot"></span>高山西梅</button>
+    <button class="pill" data-prod="chongcao" onclick="switchProd('chongcao')"><span class="dot"></span>冬虫夏草</button>
+    <button class="pill" data-prod="hetao" onclick="switchProd('hetao')"><span class="dot"></span>高山干核桃</button>
+  </div>
+
+  <!-- 西梅 -->
+  <div class="prod-detail active" id="prod-ximei">
+    <div class="prod-hero">
+      <div>
+        <div class="prod-photo">
+          <img src="assets/ximei-cut.jpg" alt="高山西梅果肉金黄">
+          <span class="ph-status tag tag-green" style="position:absolute">● 已上线 · 本季热销</span>
+          <div class="ph-name"><h3>高山西梅 · 羌山脆李</h3><p>理县古尔沟高海拔果园 · 现摘现发</p></div>
+        </div>
+        <div class="prod-gallery">
+          <img src="assets/ximei-tree.jpg" alt="西梅挂枝">
+          <img src="assets/ximei-box.jpg" alt="西梅装箱">
+          <img src="assets/ximei-pack.jpg" alt="西梅网套包装">
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-title">产品信息卡</div>
+        <table class="info-table">
+          <tr><th>产地</th><td>阿坝州理县古尔沟镇高海拔果园（海拔约 2400 米）</td></tr>
+          <tr><th>上市期</th><td>8 月中下旬 — 9 月上旬，一年一季，现摘现发</td></tr>
+          <tr><th>规格包装</th><td>3 斤尝鲜装 / 5 斤礼盒装；泡沫托 + 独立网套 + 纸箱</td></tr>
+          <tr><th>快递时效</th><td>常温快递，川渝次日达，省外约 2–4 日</td></tr>
+          <tr><th>参考价格</th><td>3 斤装约 ¥59、5 斤礼盒约 ¥89（演示样例，实际随行就市）</td></tr>
+          <tr><th>适合渠道</th><td>朋友圈 / 微信群预售、民宿采摘、短视频带货</td></tr>
+        </table>
+        <div class="field-label">三个核心卖点</div>
+        <div class="sellpoint"><span class="sp-num">1</span><div><b>高山温差甜</b>——海拔高、昼夜温差大，果肉金黄、清甜离核。</div></div>
+        <div class="sellpoint"><span class="sp-num">2</span><div><b>果霜完整</b>——现摘现发、不打蜡，表面白霜是新鲜的标志。</div></div>
+        <div class="sellpoint"><span class="sp-num">3</span><div><b>可摘可寄</b>——果园挨着藏家民宿，游客能采摘，线上能预订。</div></div>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title">全年经营节奏</div>
+      <div class="cal-row">
+        <div class="cal-cell">3月</div><div class="cal-cell">4月</div><div class="cal-cell">5月</div><div class="cal-cell">6月</div><div class="cal-cell">7月</div><div class="cal-cell pre">8月</div><div class="cal-cell hot">9月</div><div class="cal-cell">10月</div><div class="cal-cell">11月</div><div class="cal-cell">12月</div><div class="cal-cell">1月</div><div class="cal-cell">2月</div>
+      </div>
+      <div class="cal-legend"><span><i style="background:var(--gold)"></i>预售宣传</span><span><i style="background:var(--red)"></i>集中采摘发货</span><span><i style="background:#eee9dc"></i>空档期</span></div>
+      <div class="story-box">
+        <b>山里的故事：</b>古尔沟小林藏家民宿的主人一边经营民宿，一边打理山上的西梅园。每年 8 月果子熟了，住过店的客人在朋友圈下单，家里人清晨采摘、套网套、装泡沫箱，当天就搬到快递点。「今天西梅寄出来了，注意查收」——一句句朋友圈，就是这个小果园最朴素的线上生意。
+      </div>
+    </div>
+  </div>
+
+  <!-- 虫草 -->
+  <div class="prod-detail" id="prod-chongcao">
+    <div class="prod-hero">
+      <div>
+        <div class="prod-photo">
+          <img src="assets/chongcao-gift.jpg" alt="冬虫夏草礼盒">
+          <span class="ph-status tag tag-green" style="position:absolute">● 已上线 · 熟客 / 礼品单</span>
+          <div class="ph-name"><h3>理县冬虫夏草</h3><p>高海拔采挖 · 手工刷泥 · 自然晾晒</p></div>
+        </div>
+        <div class="prod-gallery">
+          <img src="assets/chongcao-box.jpg" alt="织锦礼盒">
+          <img src="assets/chongcao-hand.jpg" alt="手工整理虫草">
+          <img src="assets/chongcao-close.jpg" alt="虫草特写">
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-title">产品信息卡</div>
+        <table class="info-table">
+          <tr><th>产地</th><td>阿坝州理县高海拔山地，村民季节性采挖</td></tr>
+          <tr><th>上市期</th><td>5–6 月采挖季；干品整理装盒后全年可售</td></tr>
+          <tr><th>规格包装</th><td>按根 / 克分级；织锦圆盒、红木礼盒（10 根 / 20 根装）</td></tr>
+          <tr><th>快递时效</th><td>干货常温、轻小件，顺丰 / 邮政特快 1–3 日</td></tr>
+          <tr><th>参考价格</th><td>按品级约 ¥60–120/克、礼盒 ¥398–1280（演示样例，随行就市）</td></tr>
+          <tr><th>适合渠道</th><td>熟客预订、节庆礼品、朋友圈口碑传播</td></tr>
+        </table>
+        <div class="field-label">三个核心卖点</div>
+        <div class="sellpoint"><span class="sp-num">1</span><div><b>高海拔采挖</b>——来自理县高山草甸，采挖季短、产量有限。</div></div>
+        <div class="sellpoint"><span class="sp-num">2</span><div><b>手工净制</b>——一根根手工刷泥、自然晾晒，不熏不染。</div></div>
+        <div class="sellpoint"><span class="sp-num">3</span><div><b>礼赠体面</b>——藏式织锦礼盒配产地卡，送长辈、走亲戚有分量。</div></div>
+        <div class="compliance-line warn" style="margin-top:14px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          宣传时只讲产地、规格与工艺，不得宣称治疗、抗癌、壮阳等功效。
+        </div>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title">全年经营节奏</div>
+      <div class="cal-row">
+        <div class="cal-cell">3月</div><div class="cal-cell">4月</div><div class="cal-cell hot">5月</div><div class="cal-cell hot">6月</div><div class="cal-cell sell">7月</div><div class="cal-cell sell">8月</div><div class="cal-cell pre">9月</div><div class="cal-cell">10月</div><div class="cal-cell">11月</div><div class="cal-cell pre">12月</div><div class="cal-cell pre">1月</div><div class="cal-cell">2月</div>
+      </div>
+      <div class="cal-legend"><span><i style="background:var(--red)"></i>采挖季</span><span><i style="background:var(--teal-600)"></i>整理装盒常售</span><span><i style="background:var(--gold)"></i>节庆礼品高峰</span></div>
+      <div class="story-box">
+        <b>山里的故事：</b>每年五六月，村里的劳动力会上山采挖虫草。下山后，一家人围坐灯下，用小刷子一根根刷去泥土，摊开自然晾干，再按大小品级装进织锦盒。虫草客单价高、订单不多，靠的是一年年攒下的熟客信任——这也是为什么每一条宣传都必须实在、合规。
+      </div>
+    </div>
+  </div>
+
+  <!-- 核桃 -->
+  <div class="prod-detail" id="prod-hetao">
+    <div class="prod-hero">
+      <div>
+        <div class="prod-photo">
+          <img src="assets/hetao-bag.jpg" alt="高山干核桃">
+          <span class="ph-status tag tag-gold" style="position:absolute">● 宣传筹备中 · 新货下树</span>
+          <div class="ph-name"><h3>高山干核桃</h3><p>老树核桃 · 带青皮现脱 · 自然晾晒</p></div>
+        </div>
+        <div class="prod-gallery">
+          <img src="assets/hetao-green.jpg" alt="带青皮核桃">
+          <img src="assets/hetao-basket.jpg" alt="脱皮核桃">
+          <img src="assets/firewood.jpg" alt="藏寨柴火墙">
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-title">产品信息卡</div>
+        <table class="info-table">
+          <tr><th>产地</th><td>阿坝州理县高山村寨，老树散种</td></tr>
+          <tr><th>上市期</th><td>9–10 月采收脱皮、自然晾干，干货可储至次年</td></tr>
+          <tr><th>规格包装</th><td>5 斤袋装 / 10 斤箱装，可定制伴手礼礼盒</td></tr>
+          <tr><th>快递时效</th><td>常温耐储、不易坏，普通快递 2–5 日，运费低</td></tr>
+          <tr><th>参考价格</th><td>约 ¥12–16/斤、5 斤装约 ¥69（演示样例）</td></tr>
+          <tr><th>适合渠道</th><td>短视频开箱、社群团购、收购商 + 线上并行</td></tr>
+        </table>
+        <div class="field-label">三个核心卖点</div>
+        <div class="sellpoint"><span class="sp-num">1</span><div><b>不漂白</b>——自然晾干，保留核桃本来的褐色外壳，吃得放心。</div></div>
+        <div class="sellpoint"><span class="sp-num">2</span><div><b>现脱现晾</b>——带青皮下树、当场脱皮，果仁饱满、油脂香足。</div></div>
+        <div class="sellpoint"><span class="sp-num">3</span><div><b>耐放好寄</b>——常温能放一冬，自己吃、当年货、做伴手礼都合适。</div></div>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title">全年经营节奏</div>
+      <div class="cal-row">
+        <div class="cal-cell">3月</div><div class="cal-cell">4月</div><div class="cal-cell">5月</div><div class="cal-cell">6月</div><div class="cal-cell">7月</div><div class="cal-cell">8月</div><div class="cal-cell hot">9月</div><div class="cal-cell hot">10月</div><div class="cal-cell sell">11月</div><div class="cal-cell sell">12月</div><div class="cal-cell pre">1月</div><div class="cal-cell sell">2月</div>
+      </div>
+      <div class="cal-legend"><span><i style="background:var(--red)"></i>采收脱皮</span><span><i style="background:var(--teal-600)"></i>干货常售</span><span><i style="background:var(--gold)"></i>年货伴手礼</span></div>
+      <div class="story-box">
+        <b>山里的故事：</b>今年核桃丰收，脱皮后的核桃装了满满一屋、一筐又一筐。过去主要等收购商上门，价格被压得低；今年队员们建议：这么好的高山核桃，应该自己拍视频、讲故事，直接卖给城里想吃点好坚果的人。「理农通」要做的第一件事，就是帮这批核桃把宣传铺出去。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 视图：智能文案 ===================== -->
+<section class="view" id="view-copy">
+  <div class="view-head">
+    <div class="view-title">智能文案 <span class="vt-tag">一键生成</span></div>
+    <div class="view-desc">选择产品、平台和想突出的卖点，助手会按平台语气自动生成可直接复制发布的宣传文案；每次生成都不一样。</div>
+  </div>
+  <div class="gen-layout">
+    <div class="card card-pad">
+      <label class="field-label">1 · 选择产品</label>
+      <div class="pill-row" id="copyProdPills">
+        <button class="pill active" data-prod="ximei" onclick="setCopyProd('ximei')">高山西梅</button>
+        <button class="pill" data-prod="chongcao" onclick="setCopyProd('chongcao')">冬虫夏草</button>
+        <button class="pill" data-prod="hetao" onclick="setCopyProd('hetao')">高山干核桃</button>
+      </div>
+      <label class="field-label">2 · 发布平台</label>
+      <div class="pill-row" id="copyPlatPills">
+        <button class="pill active" data-plat="moments" onclick="setCopyPlat('moments')">朋友圈 / 微信群</button>
+        <button class="pill" data-plat="douyin" onclick="setCopyPlat('douyin')">抖音口播</button>
+        <button class="pill" data-plat="rednote" onclick="setCopyPlat('rednote')">小红书</button>
+        <button class="pill" data-plat="article" onclick="setCopyPlat('article')">公众号短文</button>
+      </div>
+      <label class="field-label">3 · 想突出的卖点（可多选）</label>
+      <div class="check-row" id="copySellpoints"></div>
+      <label class="field-label">4 · 文案语气</label>
+      <select class="select" id="copyTone">
+        <option value="plain">朴实家常（像农户自己说的话）</option>
+        <option value="young">年轻活泼（适合短视频）</option>
+        <option value="formal">真诚正式（适合礼品 / 公众号）</option>
+      </select>
+      <label class="field-label">5 · 补充一句话（可不填）</label>
+      <textarea class="textarea" id="copyExtra" placeholder="例如：今天刚摘回来、最后 30 箱、中秋前发货……"></textarea>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:18px" onclick="genCopy()">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 5 5L20 7"/></svg>生成宣传文案
+      </button>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title" id="copyResultTitle">生成结果</div>
+      <div class="result-box" id="copyResult">
+        <div class="result-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <div>选好产品和平台，点「生成宣传文案」<br>这里会出现可以直接复制发布的内容</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 视图：短视频脚本 ===================== -->
+<section class="view" id="view-video">
+  <div class="view-head">
+    <div class="view-title">短视频脚本 <span class="vt-tag">照着拍</span></div>
+    <div class="view-desc">调研中 50% 的农户认为「拍剪短视频」最难。助手把一条 30 秒短视频拆成分镜表，画面、口播、拍摄提示逐镜头写好，手机照着拍即可。</div>
+  </div>
+  <div class="gen-layout">
+    <div class="card card-pad">
+      <label class="field-label">选择要推广的产品</label>
+      <div class="pill-row" id="vidProdPills">
+        <button class="pill active" data-prod="ximei" onclick="setVidProd('ximei')">高山西梅</button>
+        <button class="pill" data-prod="chongcao" onclick="setVidProd('chongcao')">冬虫夏草</button>
+        <button class="pill" data-prod="hetao" onclick="setVidProd('hetao')">高山干核桃</button>
+      </div>
+      <label class="field-label">视频时长</label>
+      <div class="pill-row">
+        <span class="tag tag-teal" style="font-size:13px;padding:6px 13px">时长 30 秒 · 适合抖音 / 视频号</span>
+      </div>
+      <label class="field-label">拍摄条件（脚本已按此设计）</label>
+      <div class="check-row">
+        <span class="tag tag-teal">手机原相机</span>
+        <span class="tag tag-teal">自然光</span>
+        <span class="tag tag-teal">无需露脸也能拍</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:18px" onclick="genVideo()">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg>生成分镜脚本
+      </button>
+      <div class="note" style="margin-top:14px">提示：前 3 秒决定观众会不会划走，脚本已把最有冲击力的画面放在第一个镜头。</div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title">分镜脚本</div>
+      <div class="result-box" id="videoResult" style="padding:0;overflow:hidden">
+        <div class="result-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg>
+          <div>点「生成分镜脚本」<br>这里会出现逐镜头拍摄表</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===================== 视图：经营看板 ===================== -->
+<section class="view" id="view-dashboard">
+  <div class="view-head">
+    <div class="view-title">经营看板 <span class="vt-tag">心里有数</span></div>
+    <div class="view-desc">把订单、销量、渠道和库存从聊天记录与纸箱子里整理到一屏。以下为原型演示样例数据，用于展示台账建立后的样子，不代表真实经营结果。</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="k-lab">近 6 个月销售额（模拟）</div><div class="k-num">8.4 <small>万元</small></div><div class="k-trend up">▲ 西梅季单月最高 3.6 万</div></div>
+    <div class="kpi"><div class="k-lab">线上订单占比（模拟）</div><div class="k-num">58 <small>%</small></div><div class="k-trend up">▲ 朋友圈 + 短视频贡献主要增量</div></div>
+    <div class="kpi"><div class="k-lab">复购顾客（模拟）</div><div class="k-num">46 <small>人</small></div><div class="k-trend" style="color:var(--ink-faint)">民宿住客转化明显</div></div>
+    <div class="kpi"><div class="k-lab">待处理库存</div><div class="k-num">800 <small>斤核桃</small></div><div class="k-trend warn">● 9 月新货，需重点去化</div></div>
+  </div>
+  <div class="dash-grid">
+    <div class="card chart-card">
+      <div class="card-title">近 6 个月销售额走势（元 · 模拟）</div>
+      <div class="chart" id="chartTrend"></div>
+    </div>
+    <div class="card chart-card">
+      <div class="card-title">订单渠道结构（模拟）</div>
+      <div class="chart" id="chartChannel"></div>
+    </div>
+  </div>
+  <div class="dash-grid">
+    <div class="card chart-card">
+      <div class="card-title">三个产品销售结构（模拟）</div>
+      <div class="chart chart-sm" id="chartProduct"></div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title">库存与上市提醒</div>
+      <div class="stock-row">
+        <span class="stock-name">高山西梅</span>
+        <span class="stock-bar"><i style="width:18%;background:var(--teal-600)"></i></span>
+        <span class="stock-val">余量少 · 临近下市</span>
+      </div>
+      <div class="stock-row">
+        <span class="stock-name">冬虫夏草</span>
+        <span class="stock-bar"><i style="width:42%;background:var(--gold)"></i></span>
+        <span class="stock-val">按克管理 · 中秋备货</span>
+      </div>
+      <div class="stock-row">
+        <span class="stock-name">高山干核桃</span>
+        <span class="stock-bar"><i style="width:92%;background:var(--red)"></i></span>
+        <span class="stock-val">800 斤 · 宣传筹备中</span>
+      </div>
+      <div class="ins-conclusion" style="margin-top:16px">
+        <b>看板怎么帮到农户：</b>问卷中 73% 的农户靠记忆、纸笔或分散的聊天记录记账。建立台账后，哪个产品压货、哪个渠道来单、什么时候该备货，一眼可见——这正是「理农通」经营看板要解决的问题。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 视图：成本定价 ===================== -->
+<section class="view" id="view-pricing">
+  <div class="view-head">
+    <div class="view-title">成本定价 <span class="vt-tag">不做亏本买卖</span></div>
+    <div class="view-desc">改一改左侧的成本数字和售价，右侧实时算出单位成本、毛利与盈亏平衡点。默认值为演示样例，请替换为农户的真实成本。</div>
+  </div>
+  <div class="pill-row" style="margin-bottom:20px" id="priceProdPills">
+    <button class="pill active" data-prod="ximei" onclick="switchPrice('ximei')">高山西梅 · 5斤礼盒</button>
+    <button class="pill" data-prod="chongcao" onclick="switchPrice('chongcao')">冬虫夏草 · 10根礼盒</button>
+    <button class="pill" data-prod="hetao" onclick="switchPrice('hetao')">高山干核桃 · 5斤袋</button>
+  </div>
+  <div class="gen-layout">
+    <div class="card card-pad">
+      <div class="card-title">逐项成本（元 / 单）</div>
+      <div id="costInputs"></div>
+      <div class="range-row">
+        <label class="field-label" style="margin:0 0 6px">计划售价：<b id="priceLabel" style="color:var(--red)">¥89 / 单</b></label>
+        <input type="range" id="priceRange" min="40" max="200" step="1" value="89" oninput="calcPrice()">
+        <div class="range-marks"><span>低</span><span>拖动调整售价</span><span>高</span></div>
+      </div>
+      <button class="btn btn-teal" style="width:100%;justify-content:center;margin-top:6px" onclick="toast('已按当前成本给出建议价区间')">采用建议价</button>
+    </div>
+    <div>
+      <div class="card card-pad">
+        <div class="card-title">测算结果</div>
+        <div class="price-result">
+          <div class="price-box"><div class="pb-lab">单位总成本</div><div class="pb-num" id="rCost">¥69</div></div>
+          <div class="price-box highlight"><div class="pb-lab">当前售价毛利</div><div class="pb-num" id="rProfit">¥20</div></div>
+          <div class="price-box"><div class="pb-lab">毛利率</div><div class="pb-num" id="rMargin">22%</div></div>
+        </div>
+        <div class="chart chart-sm" id="chartCost" style="height:230px"></div>
+      </div>
+      <div class="card card-pad" style="margin-top:18px">
+        <div class="card-title">定价建议</div>
+        <div id="priceAdvice" style="font-size:13.6px;color:var(--ink-soft);line-height:1.9"></div>
+        <div class="note" style="margin-top:10px">盈亏平衡：按当前售价，至少卖出 <b id="breakEven" style="color:var(--red)">—</b> 单可覆盖一次性包装物料等固定投入（演示按 ¥500 估算）。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 视图：合规检查 ===================== -->
+<section class="view" id="view-compliance">
+  <div class="view-head">
+    <div class="view-title">合规检查 <span class="vt-tag">卖得安心</span></div>
+    <div class="view-desc">农产品宣传最容易在「功效」和「极限词」上踩坑。把文案贴进来，助手自动标出风险表述并给出合规改法。虫草、中药材类产品尤其需要先检查再发布。</div>
+  </div>
+  <div class="gen-layout">
+    <div class="card card-pad">
+      <div class="card-title">待检查文案</div>
+      <textarea class="textarea" id="complianceInput" style="min-height:280px"></textarea>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="checkCompliance()">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>扫描风险表述
+      </button>
+      <div class="pill-row" style="margin-top:14px">
+        <button class="pill" onclick="loadSample('chongcao')">载入虫草示例</button>
+        <button class="pill" onclick="loadSample('ximei')">载入西梅示例</button>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title">检查结果</div>
+      <div id="complianceResult">
+        <div class="result-empty" style="height:220px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6Z"/><path d="M9 12l2 2 4-4"/></svg>
+          <div>贴入或载入一段文案，点「扫描风险表述」<br>结果会逐条列出问题与修改建议</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card card-pad" style="margin-top:18px">
+    <div class="card-title">农产品宣传合规红线（提示清单）</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 34px">
+      <ul class="rule-list">
+        <li class="no">普通食品 / 农产品不得宣称治疗、抗癌、壮阳、降三高、增强免疫等医疗或保健功效。</li>
+        <li class="no">不得使用「最好、第一、极品、顶级、100%、纯天然无添加」等绝对化、无法证明的用语。</li>
+        <li class="no">虫草等野生资源相关产品，不渲染稀缺、不诱导投机收藏，不虚构产地与品级。</li>
+      </ul>
+      <ul class="rule-list">
+        <li class="yes">可以讲：产地海拔、品种、种植 / 采挖时节、规格克重、包装与快递方式。</li>
+        <li class="yes">可以讲：口感风味、储存方法、食用场景，并如实说明品相差异与售后方式。</li>
+        <li class="yes">涉及功效时改为生活化表达，如「煲汤时放几根，家里人习惯的味道」，并注明「仅供膳食参考」。</li>
+      </ul>
+    </div>
+    <div class="note" style="margin-top:12px">本检查为原型内置的常见风险词提示，不能替代法律意见；正式经营请以《广告法》《食品安全法》及平台规则为准。</div>
+  </div>
+</section>
+<!-- ===================== 视图：调研洞察 ===================== -->
+<section class="view" id="view-insights">
+  <div class="view-head">
+    <div class="view-title">调研洞察 <span class="vt-tag">功能从需求来</span></div>
+    <div class="view-desc">「理农通」的每一个功能都对应调研中发现的真实困难。以下图表来自项目配套的 100 份村民问卷模拟数据（固定随机种子，用于统计流程与原型演示，非实地调查结果）。</div>
+  </div>
+  <div class="insight-hero">
+    <div class="ins-stat"><div class="n">78%</div><div class="l">家庭参与特色农产品<br>生产、采集或销售</div></div>
+    <div class="ins-stat"><div class="n">71%</div><div class="l">愿意尝试网页助手<br>（31% 自学 + 40% 教会后用）</div></div>
+    <div class="ins-stat"><div class="n">19%</div><div class="l">能独立完成较完整的<br>宣传内容或线上店铺</div></div>
+    <div class="ins-stat"><div class="n">50%</div><div class="l">认为拍摄剪辑短视频<br>是线上宣传最难环节</div></div>
+  </div>
+  <div class="ins-grid">
+    <div class="card chart-card">
+      <div class="card-title">特色农产品主要销售渠道（n=74 · 多选）</div>
+      <div class="chart" id="chartChannel2"></div>
+      <div class="ins-conclusion"><b>解读：</b>收购商（56.8%）、朋友圈（47.3%）、线下集市（45.9%）为主，抖音等内容渠道仅 18.9%、电商店铺仅 13.5%——线上内容营销是明显短板，也是助手的发力点。</div>
+    </div>
+    <div class="card chart-card">
+      <div class="card-title">助农网页助手使用意愿（n=100 · 单选）</div>
+      <div class="chart" id="chartIntent"></div>
+      <div class="ins-conclusion"><b>解读：</b>40% 的村民需要「有人演示教会后」才愿意用，说明工具必须简单，且离不开现场培训与村级联系人陪跑。</div>
+    </div>
+    <div class="card chart-card">
+      <div class="card-title">经营中遇到的主要困难（n=78 · 多选）</div>
+      <div class="chart" id="chartObstacle"></div>
+      <div class="ins-conclusion"><b>解读：</b>不会拍图做视频（43.6%）、不会介绍产品（35.9%）排在最前，正好对应「短视频脚本」与「智能文案」两个工具。</div>
+    </div>
+    <div class="card chart-card">
+      <div class="card-title">最希望助手优先提供的功能（n=100 · 多选）</div>
+      <div class="chart" id="chartFeature"></div>
+      <div class="ins-conclusion"><b>解读：</b>文案生成（31%）、拍照与脚本（31%）、经营看板（30%）、语音记账（28%）需求最集中，构成了「理农通」六大工具的直接依据。</div>
+    </div>
+  </div>
+  <div class="card card-pad" style="margin-top:18px">
+    <div class="card-title">培训方式偏好（n=100）对项目设计的启发</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px">
+      <div style="text-align:center;padding:14px;background:var(--teal-50);border-radius:10px"><div style="font-family:var(--serif);font-size:24px;font-weight:700;color:var(--teal-700)">41%</div><div style="font-size:12.5px;color:var(--ink-soft);margin-top:3px">现场小班演示<br>当场练习</div></div>
+      <div style="text-align:center;padding:14px;background:var(--teal-50);border-radius:10px"><div style="font-family:var(--serif);font-size:24px;font-weight:700;color:var(--teal-700)">17%</div><div style="font-size:12.5px;color:var(--ink-soft);margin-top:3px">短视频<br>反复学习</div></div>
+      <div style="text-align:center;padding:14px;background:var(--teal-50);border-radius:10px"><div style="font-family:var(--serif);font-size:24px;font-weight:700;color:var(--teal-700)">16%</div><div style="font-size:12.5px;color:var(--ink-soft);margin-top:3px">一对一<br>上门指导</div></div>
+      <div style="text-align:center;padding:14px;background:var(--teal-50);border-radius:10px"><div style="font-family:var(--serif);font-size:24px;font-weight:700;color:var(--teal-700)">12%</div><div style="font-size:12.5px;color:var(--ink-soft);margin-top:3px">联系人先学<br>再教村民</div></div>
+    </div>
+    <div class="ins-conclusion" style="margin-top:14px"><b>项目对策：</b>采用「现场小班培训 + 工具内置操作提示 + 村级联系人 / 家人协助」的组合，这也是年度机制中「建档培训」与「线上陪跑」两步的由来。</div>
+  </div>
+</section>
+
+<!-- ===================== 视图：年度传承 ===================== -->
+<section class="view" id="view-legacy">
+  <div class="view-head">
+    <div class="view-title">年度传承 <span class="vt-tag">一届带一届</span></div>
+    <div class="view-desc">数字助农不是一次走访就能完成的事。项目已连续两年走进理县，正推动与理县团委共建年度数字助农服务机制，让每年暑期的优秀学生接续陪伴村寨。</div>
+  </div>
+
+  <div class="card card-pad" style="margin-bottom:18px">
+    <div class="card-title">两年实践，一条主线</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-year">2025<small>第一届 · 调研筑基</small></div>
+        <div class="tl-axis"><div class="tl-dot"></div></div>
+        <div class="tl-card">
+          <h4>理县藏韵 · 数据兴农实践队</h4>
+          <p>系统调研理县数字乡村建设，走访政府部门、企业、合作社与农户，形成产业数据库、微纪录片、公众号专栏与直播观察报告，收到理县相关单位复函致谢，为后续项目打下资料与信任基础。</p>
+          <div class="tl-tags"><span class="tag tag-teal">数字乡村调研</span><span class="tag tag-teal">微纪录片</span><span class="tag tag-teal">校地复函</span></div>
+        </div>
+      </div>
+      <div class="tl-item now">
+        <div class="tl-year">2026<small>第二届 · 工具落地</small></div>
+        <div class="tl-axis"><div class="tl-dot"></div></div>
+        <div class="tl-card">
+          <h4>特拉华数智兴村实践队（本届）</h4>
+          <p>深入小沟村、大沟村、丘地村等藏羌村寨入户访谈，围绕西梅、虫草、核桃等产品沉淀助农智能体「理农通」原型，开展数字助农培训、拍摄实践纪录片、记录唐卡等非遗，校地复函表达持续共建意愿。</p>
+          <div class="tl-tags"><span class="tag tag-red">助农智能体原型</span><span class="tag tag-red">入户访谈</span><span class="tag tag-red">助农培训</span><span class="tag tag-red">非遗记录</span></div>
+        </div>
+      </div>
+      <div class="tl-item future">
+        <div class="tl-year">2027—<small>第三届起 · 机制陪伴</small></div>
+        <div class="tl-axis"><div class="tl-dot"></div></div>
+        <div class="tl-card">
+          <h4>年度数字助农服务机制（拟 · 筹备中）</h4>
+          <p>拟联合共青团理县委员会，每年暑期招募优秀学生入村，按统一流程开展服务并完成新老交接，把一届届学生的调研、素材与工具留在村寨，形成可持续的「党团引领 + 专业赋能 + 志愿服务」长效项目。</p>
+          <div class="tl-tags"><span class="tag tag-gold">党建团建引领</span><span class="tag tag-gold">年度招募</span><span class="tag tag-gold">长效陪伴</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note">注：年度服务机制与服务点尚在筹备对接中，本页为项目规划与愿景，最终以校地正式协议为准。</div>
+  </div>
+
+  <div class="card card-pad" style="margin-bottom:18px">
+    <div class="card-title">每年五步法，服务不断线</div>
+    <div class="mech-grid">
+      <div class="mech-step"><div class="mech-ico">访</div><h5>入村访谈</h5><p>回访农户、更新需求清单与产品档案</p></div>
+      <div class="mech-step"><div class="mech-ico">训</div><h5>建档培训</h5><p>现场小班教学，教会文案与拍摄</p></div>
+      <div class="mech-step"><div class="mech-ico">拍</div><h5>素材生产</h5><p>帮农户拍下一季产品图片与视频</p></div>
+      <div class="mech-step"><div class="mech-ico">陪</div><h5>线上陪跑</h5><p>开学后远程答疑、跟进订单与发货</p></div>
+      <div class="mech-step"><div class="mech-ico">交</div><h5>年度交接</h5><p>素材、台账、联系人移交给下一届</p></div>
+    </div>
+  </div>
+
+  <div class="card card-pad" style="margin-bottom:18px">
+    <div class="card-title">每年招募什么样的学生</div>
+    <div class="recruit-grid">
+      <div class="recruit-card">
+        <div class="r-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#b4452f" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <h5>入党积极分子</h5>
+        <p>理想信念坚定、肯吃苦，在入户服务中践行群众路线，发挥带头作用。</p>
+      </div>
+      <div class="recruit-card">
+        <div class="r-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#b4452f" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 11l2 2 3-3"/></svg></div>
+        <h5>入团积极分子</h5>
+        <p>热心志愿服务，承担培训助教、儿童科普、老人手机教学等公益服务。</p>
+      </div>
+      <div class="recruit-card">
+        <div class="r-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#b4452f" stroke-width="2"><path d="M22 10 12 5 2 10l10 5 10-5ZM6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></div>
+        <h5>三好学生 / 专业骨干</h5>
+        <p>具备数据分析、内容创作、视频拍摄等专业能力，能把工具真正做出来、教明白。</p>
+      </div>
+    </div>
+    <div class="ins-conclusion" style="margin-top:14px"><b>学生与村寨的共赢：</b>学生获得专业实践、志愿服务与党团教育的真实课堂（实践证明、志愿时长按学校规定认定）；村寨获得持续更新的数字工具与宣传素材。项目以服务成效为导向，不向农户收取任何费用。</div>
+  </div>
+
+  <div class="card card-pad" style="margin-bottom:18px">
+    <div class="card-title">2026 实践现场</div>
+    <div class="photo-wall">
+      <div class="pw big"><img src="assets/team-thangka.jpg" alt="与非遗唐卡传承人合影"><div class="cap">与非遗唐卡传承人及家人合影 · 实践队队旗</div></div>
+      <div class="pw"><img src="assets/team-interview.jpg" alt="采访民宿主理人"><div class="cap">访谈丝绸之路河南道民宿主理人</div></div>
+      <div class="pw"><img src="assets/qiudi-sign.jpg" alt="丘地村"><div class="cap">丘地村村寨调研</div></div>
+      <div class="pw"><img src="assets/farmer-grandma.jpg" alt="藏族老人收菜"><div class="cap">记录藏寨农户蔬菜采收</div></div>
+      <div class="pw"><img src="assets/veg-field.jpg" alt="高山蔬菜基地"><div class="cap">高山蔬菜基地走访</div></div>
+      <div class="pw"><img src="assets/qiang-embroidery.jpg" alt="羌绣"><div class="cap">羌绣非遗记录</div></div>
+      <div class="pw"><img src="assets/thangka-craft.jpg" alt="唐卡文创"><div class="cap">菩提叶唐卡与文创产品</div></div>
+      <div class="pw"><img src="assets/qiang-drum.jpg" alt="羌族羊皮鼓"><div class="cap">羌族羊皮鼓记录</div></div>
+      <div class="pw"><img src="assets/stone-lamp.jpg" alt="藏寨新貌"><div class="cap">藏寨新貌与传统纹样</div></div>
+      <div class="pw"><img src="assets/village-street.jpg" alt="藏寨新街"><div class="cap">藏寨石砌新街</div></div>
+      <div class="pw"><img src="assets/misty-mountain.jpg" alt="理县峡谷云雾"><div class="cap">理县高山峡谷</div></div>
+      <div class="pw"><img src="assets/noodle.jpg" alt="理县老兵碱面"><div class="cap">理县老兵碱面 · 本地物产走访</div></div>
+    </div>
+  </div>
+
+  <div class="card card-pad">
+    <div class="card-title">项目信息</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px 26px;font-size:13.5px;color:var(--ink-soft)">
+      <div><b style="color:var(--teal-900)">主办</b><br>共青团西南财经大学委员会</div>
+      <div><b style="color:var(--teal-900)">承办</b><br>特拉华数据科学学院</div>
+      <div><b style="color:var(--teal-900)">实践队</b><br>特拉华数智兴村实践队</div>
+      <div><b style="color:var(--teal-900)">指导教师</b><br>王彬宇、王新海</div>
+      <div><b style="color:var(--teal-900)">实践地点</b><br>四川省阿坝州理县</div>
+      <div><b style="color:var(--teal-900)">实践时间</b><br>2026 年 7 月 7—12 日</div>
+    </div>
+    <div class="ornament" style="margin:18px 0 10px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19"/></svg>
+    </div>
+    <div style="text-align:center;font-family:var(--serif);color:var(--teal-800);font-size:16px;letter-spacing:2px">数智兴村 · 理县有我 · 一届接着一届干</div>
+  </div>
+</section>
+  </div>
+</div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 5 5L20 7"/></svg><span id="toastMsg">已完成</span></div>
+<!-- 演示引导 -->
+<div class="guide" id="guide">
+  <div class="guide-top"><span class="guide-step" id="gStep">第 1 / 7 步</span><span class="guide-title" id="gTitle"></span></div>
+  <p id="gText"></p>
+  <div class="guide-actions">
+    <button class="btn btn-skip" onclick="endGuide()">我自己点</button>
+    <button class="btn btn-next" id="gNext" onclick="guideNext()">下一步</button>
+  </div>
+</div>
+<script>
+/* ===================== 数据 ===================== */
+const PRODUCTS = {
+  ximei:{
+    name:'高山西梅', alias:'羌山脆李·西梅',
+    origin:'理县古尔沟海拔约2400米的高山果园',
+    season:'8月中下旬到9月上旬，一年一季',
+    spec:'3斤尝鲜装、5斤礼盒装，泡沫托加独立网套',
+    ship:'常温快递，川渝次日达，省外2到4天',
+    sellpoints:{
+      sweet:'高山昼夜温差大，果肉金黄、清甜离核、酸甜多汁',
+      fresh:'现摘现发、不打蜡，果皮上的白霜就是新鲜的标志',
+      pick:'果园挨着古尔沟藏家民宿，能上山采摘，也能线上预订'
+    },
+    facts:['清晨采摘、当天装箱','每颗都套网套、防磕碰','住过民宿的客人年年回购','海拔高、日照足，果子甜得自然'],
+    audience:'想吃应季新鲜水果的家庭、给孩子准备课间水果的家长、来住过民宿的老客人',
+    scenes:['洗净直接吃，酸甜开胃','煮水、做果酱都方便','开学给孩子带一盒'],
+    price:'3斤装59元、5斤礼盒89元',
+    tags:['#理县西梅','#阿坝高山水果','#现摘现发','#古尔沟','#藏家民宿']
+  },
+  chongcao:{
+    name:'理县冬虫夏草', alias:'高海拔干品礼盒',
+    origin:'理县高海拔山地，村民采挖季上山采挖',
+    season:'5到6月采挖，干品整理装盒后全年可售',
+    spec:'按根、按克分级，织锦圆盒与红木礼盒，10根或20根装',
+    ship:'干货轻小件，顺丰或邮政特快，1到3天',
+    sellpoints:{
+      origin:'来自理县高山草甸，采挖季短、产量有限',
+      craft:'一根根手工刷泥、自然晾晒，不熏不染、干干净净',
+      gift:'藏式织锦礼盒配产地卡，看长辈、走亲戚拿得出手'
+    },
+    facts:['采挖季全家蹲在山坡上一根根找','下山就着灯光用小刷子刷泥','按大小品级手工装盒','熟客订了一年又一年'],
+    audience:'过节给长辈和父母表心意的人、有日常膳食习惯的老客、企业节庆礼赠',
+    scenes:['煲汤时放几根，是家里人习惯的味道','泡水、配枸杞红枣，慢慢喝','走亲戚时拎一盒，实在又体面'],
+    price:'按品级约60到120元每克，礼盒398到1280元，随行就市',
+    tags:['#理县虫草','#阿坝特产','#藏乡好物','#节庆礼赠','#手作净制'],
+    compliance:true
+  },
+  hetao:{
+    name:'高山干核桃', alias:'老树核桃·今年新货',
+    origin:'理县高山村寨的老树核桃，山坡散种',
+    season:'9到10月带青皮采收脱皮，自然晾干，能放到次年',
+    spec:'5斤袋装、10斤箱装，也可定制伴手礼礼盒',
+    ship:'常温耐储、不易坏，普通快递2到5天，运费便宜',
+    sellpoints:{
+      natural:'自然晾晒不漂白，外壳是本来的褐色，果仁饱满',
+      fresh:'带青皮下树、当场脱皮，今年新货油脂香足',
+      keep:'常温能放一冬，自己吃、当年货、做伴手礼都合适'
+    },
+    facts:['新货刚下树，堆了小半屋','过去主要等收购商上门','不熏不漂，卖相朴素但香','耐放，运费低，适合多囤几斤'],
+    audience:'想给全家备点健康坚果的人、孕妇和孩子、置办年货的家庭',
+    scenes:['晚上剥一小碟当零食','打豆浆、熬粥放几颗','过年待客、装礼盒送人'],
+    price:'约12到16元一斤，5斤装69元',
+    tags:['#高山核桃','#理县农货','#今年新货','#不漂白','#年货坚果']
+  }
+};
+const PLATFORM_NAME={moments:'朋友圈 / 微信群',douyin:'抖音 / 视频号口播',rednote:'小红书图文',article:'公众号短文'};
+const TONE_NAME={plain:'朴实家常',young:'年轻活泼',formal:'真诚正式'};
+let state={prod:'ximei', copyProd:'ximei', copyPlat:'moments', copySps:['sweet','fresh'], copyTone:'plain', vidProd:'ximei', priceProd:'ximei'};
+const charts={};
+
+/* ===================== 基础工具 ===================== */
+function $(s,p){return (p||document).querySelector(s);}
+function $all(s,p){return Array.from((p||document).querySelectorAll(s));}
+function pick(arr,n){const c=arr.slice();const out=[];while(out.length<n&&c.length){out.push(c.splice(Math.floor(Math.random()*c.length),1)[0]);}return out;}
+function toast(msg){const t=$('#toast');$('#toastMsg').textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function copyText(txt){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('已复制，可直接粘贴发布')).catch(()=>fallbackCopy(txt));}
+  else fallbackCopy(txt);
+}
+function fallbackCopy(txt){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('已复制，可直接粘贴发布');}catch(e){toast('请长按手动复制');}document.body.removeChild(ta);}
+function toggleSide(open){$('#sidebar').classList.toggle('open',open);$('#scrim').classList.toggle('show',open);}
+
+/* ===================== 路由 ===================== */
+const VIEW_TITLE={home:'首页总览',products:'产品档案',copy:'智能文案',video:'短视频脚本',dashboard:'经营看板',pricing:'成本定价',compliance:'合规检查',insights:'调研洞察',legacy:'年度传承'};
+function goView(v){
+  $all('.view').forEach(x=>x.classList.remove('active'));
+  const el=$('#view-'+v); if(el)el.classList.add('active');
+  $all('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+  $('#crumb').innerHTML=VIEW_TITLE[v]+'<small>理农通 · 理县乡村经营助手</small>';
+  window.scrollTo({top:0,behavior:'smooth'});
+  toggleSide(false);
+  if(v==='dashboard') setTimeout(initDashCharts,60);
+  if(v==='insights') setTimeout(initInsCharts,60);
+  if(v==='pricing') setTimeout(()=>{renderCosts();calcPrice();},60);
+}
+$all('.nav-item').forEach(b=>b.addEventListener('click',()=>goView(b.dataset.view)));
+
+/* ===================== 产品档案 ===================== */
+function switchProd(p){
+  state.prod=p;
+  $all('#prodPills .pill').forEach(x=>x.classList.toggle('active',x.dataset.prod===p));
+  $all('.prod-detail').forEach(x=>x.classList.remove('active'));
+  $('#prod-'+p).classList.add('active');
+}
+
+/* ===================== 智能文案 ===================== */
+function setCopyProd(p){state.copyProd=p;
+  $all('#copyProdPills .pill').forEach(x=>x.classList.toggle('active',x.dataset.prod===p));
+  // 重置卖点为该产品前两个
+  const sps=Object.keys(PRODUCTS[p].sellpoints);
+  state.copySps=sps.slice(0,2);
+  renderCopySellpoints();
+}
+function setCopyPlat(pl){state.copyPlat=pl;$all('#copyPlatPills .pill').forEach(x=>x.classList.toggle('active',x.dataset.plat===pl));}
+function renderCopySellpoints(){
+  const d=PRODUCTS[state.copyProd];
+  $('#copySellpoints').innerHTML=Object.keys(d.sellpoints).map(k=>
+    `<span class="check-chip ${state.copySps.includes(k)?'on':''}" onclick="toggleSp('${k}')">${d.sellpoints[k].split('，')[0].split('、')[0]}</span>`).join('');
+}
+function toggleSp(k){
+  const i=state.copySps.indexOf(k);
+  if(i>=0){if(state.copySps.length<=1){toast('至少保留一个卖点');return;}state.copySps.splice(i,1);}
+  else state.copySps.push(k);
+  renderCopySellpoints();
+}
+function typeInto(el,html,cb){
+  el.classList.add('typing');el.innerHTML='';
+  const nodes=html.split('\n');let row=0,ch=0;
+  const timer=setInterval(()=>{
+    if(row>=nodes.length){clearInterval(timer);el.classList.remove('typing');cb&&cb();return;}
+    if(ch===0){el.innerHTML+=(row>0?'<br>':'');}
+    const line=nodes[row];
+    if(ch<line.length){el.innerHTML+=line[ch++];}
+    else{row++;ch=0;}
+  },8);
+}
+function genCopy(){
+  const d=PRODUCTS[state.copyProd], pl=state.copyPlat, tone=document.getElementById('copyTone').value;
+  state.copyTone=tone;
+  const extra=$('#copyExtra').value.trim();
+  const sps=state.copySps.map(k=>d.sellpoints[k]);
+  const fact=pick(d.facts,1)[0];
+  const scene=pick(d.scenes,1)[0];
+  let title='',body='',tail='';
+  const you = tone==='young'?'朋友们':tone==='formal'?'各位朋友':'乡亲们、老朋友们';
+  // 各平台结构
+  if(pl==='moments'){
+    const openers={
+      ximei:['今年的西梅，终于等到这口甜了','山里的西梅熟了，今天开始发货','最后一批高山西梅，手慢真没有'],
+      chongcao:['给长辈的心意，今年提前备好','一根根刷干净的理县虫草，装盒了','老客年年订的虫草，今年的新干品出来了'],
+      hetao:['今年的新核桃下树了，香得很','不漂白的高山干核桃，装袋了','山里人家的核桃丰收，想请大家尝尝']
+    }[state.copyProd];
+    title='';
+    body=pick(openers,1)[0]+'。\n';
+    body+='产地在'+d.origin+'，'+d.season+'。\n';
+    sps.forEach((s,i)=>{body+=(i+1)+'、'+s+'。\n';});
+    body+='都是'+fact+'，'+scene+'，正合适。\n';
+    if(extra)body+='另外说一句：'+extra+'。\n';
+    body+='规格是'+d.spec+'，'+d.ship+'；'+d.price+'。\n';
+    body+='想要的朋友直接评论或私信我，按订单顺序装箱发货，谢谢大家一年年的照顾。';
+  }else if(pl==='douyin'){
+    title='【30秒口播脚本】';
+    const hook={ximei:'先别划走！看这一刀切开的西梅，金黄果肉、汁水直接往下淌',chongcao:'一盒虫草从采挖到装盒要经过多少道手？今天带你看',hetao:'你吃的核桃可能漂过白，看看我们山里人家自己吃的核桃长什么样'}[state.copyProd];
+    body='（开头3秒，镜头怼近）'+hook+'。\n\n';
+    body+='（口播）这里是'+d.origin+'，'+d.season+'。\n';
+    body+='（边展示边说）'+sps.join('；')+'。\n';
+    body+='（镜头扫过）'+fact+'。\n';
+    if(extra)body+='（字幕提示）'+extra+'。\n';
+    body+='（结尾看镜头）'+d.spec+'，'+d.price+'，'+d.ship+'。喜欢的点个关注，评论区扣“1”，我给你留新鲜的。';
+  }else if(pl==='rednote'){
+    const t={ximei:['挖到宝！海拔2400米的西梅甜到离谱','今年吃过最惊喜的应季水果｜理县西梅','民宿老客年年回购的西梅，到底什么味'],chongcao:['送长辈不踩雷｜理县虫草礼盒开箱','一根根手工刷净的虫草，体面又实在','中秋礼赠提前备：藏式织锦虫草礼盒'],hetao:['不漂白的高山核桃，剥开才知道多香','今年新核桃下树！原味党的快乐囤货','5斤装高山干核桃，全家吃一冬']}[state.copyProd];
+    title=pick(t,1)[0];
+    body='📍产地：'+d.origin+'\n🕒时节：'+d.season+'\n\n';
+    sps.forEach(s=>{body+='✅ '+s+'\n';});
+    body+='🌰 真实细节：'+fact+'。\n';
+    body+='🍂 适合'+scene+'。\n';
+    if(extra)body+='📣 '+extra+'。\n';
+    body+='\n📦 '+d.spec+'，'+d.ship+'，'+d.price+'。需要的姐妹评论区留言，山里现摘现发。\n\n';
+    body+=d.tags.join(' ');
+  }else{
+    const t={ximei:'古尔沟的西梅熟了：一枚高山西梅的下山之路',chongcao:'采挖、刷泥、装盒：一份理县虫草的本分',hetao:'高山核桃丰收之后，我们想帮它走出大山'}[state.copyProd];
+    title=t;
+    body='【产地】'+d.origin+'。'+d.season+'，又到了一年里最忙也最踏实的时节。\n\n';
+    body+='【好在哪】'+sps.join('；')+'。'+fact+'，这是山里农货最朴素的底气。\n\n';
+    body+='【怎么吃】'+scene+'。'+(extra?extra+'。':'')+'\n\n';
+    body+='【如何购买】'+d.spec+'，'+d.ship+'，'+d.price+'。可在文末留言或添加微信预订，按下单顺序现摘现发。';
+  }
+  const warn = d.compliance?'<div class="compliance-line ok"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 5 5L20 7"/></svg>已自动规避疗效与绝对化表述，建议发布前再用「合规检查」扫一遍</div>'
+    :'<div class="compliance-line ok"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 5 5L20 7"/></svg>未发现明显违规表述，可放心发布</div>';
+  $('#copyResultTitle').textContent='生成结果 · '+PLATFORM_NAME[pl]+' · '+TONE_NAME[tone];
+  const box=$('#copyResult');
+  box.innerHTML='<div id="copyTyping" style="min-height:220px"></div>';
+  const html=(title?'<div class="cp-h">'+title+'</div>':'')+'<div class="copy-content">'+body.replace(/\n/g,'<br>')+'</div>';
+  typeInto($('#copyTyping'),html,()=>{
+    $('#copyTyping').outerHTML='<div id="copyTyped">'+html+'</div>'+warn+
+      '<div class="result-actions"><button class="btn btn-teal btn-sm" onclick=\'copyText(decodeURIComponent("'+encodeURIComponent((title?title+"\n\n":"")+body)+'"))\'><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>复制全文</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="genCopy()">换一条</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="goView(\'compliance\')">去合规检查</button></div>';
+  });
+}
+
+/* ===================== 短视频脚本 ===================== */
+function setVidProd(p){state.vidProd=p;$all('#vidProdPills .pill').forEach(x=>x.classList.toggle('active',x.dataset.prod===p));}
+const SCRIPTS={
+  ximei:{
+    shots:[
+      ['0-3秒','一刀切开西梅，金黄果肉特写，汁水顺着刀刃流下','（字幕）海拔2400米的西梅，到底有多甜？','大特写、慢动作，光线打透果肉'],
+      ['3-8秒','摇向整片山坡果园，绿叶间挂满紫红包浆的果子','这里是理县古尔沟，西梅就在海拔两千多米的山上熟了','从特写缓慢上摇，交代高山环境'],
+      ['8-14秒','手摘果子、擦掉白霜直接咬，展示果霜与离核','现摘现发、不打蜡，这层白霜就是新鲜的标志；果肉金黄、清甜离核','中近景，保留采摘环境音'],
+      ['14-20秒','回到屋里套网套、放泡沫托、封箱贴单','每颗都套网套、防磕碰，川渝次日达，省外两三天就到','俯拍打包过程，快剪'],
+      ['20-26秒','民宿客人在院里采摘、孩子拿果子笑','果园挨着藏家民宿，住过的客人年年回购，也欢迎你来摘','暖色调，抓拍真实笑脸'],
+      ['26-30秒','手举一箱西梅看镜头，箱上贴快递单','3斤装、5斤礼盒都有，评论区扣1，今天摘的今天发','正面中景，结尾停留2秒']
+    ],
+    titles:['海拔2400米的西梅，切开那一刻我服了','民宿老客年年回购的西梅，今年别再错过','现摘现发高山西梅，白霜就是新鲜的证据'],
+    props:['手机+擦镜布','泡沫托、网套、纸箱、快递单','一把切水果的刀','采摘篮','干净的木桌/竹篮做背景']
+  },
+  chongcao:{
+    shots:[
+      ['0-3秒','小刷子一根根刷去虫草上泥土的微距画面','（字幕）一根虫草，要经过多少道手才能装盒？','微距、暖光，刷泥声收进去'],
+      ['3-8秒','高山草甸空镜（云雾山坡），切回采挖弯腰画面','理县高海拔山地，五六月采挖季，村里人蹲在坡上一根根找','空镜+人物远景，交代稀缺与辛苦'],
+      ['8-15秒','竹匾摊晾、手工翻拣、按大小分级','下山就着灯光刷泥，自然晾晒，不熏不染，再按品级一根根分级','俯拍手部特写，节奏放慢'],
+      ['15-21秒','装入织锦圆盒、红木盒，摆上产地卡','藏式织锦礼盒配上产地卡，看长辈、走亲戚，拿得出手','45度角拍开盒，缎面质感'],
+      ['21-26秒','长辈用镊子夹一根放进炖盅，热气升起','家里煲汤习惯放几根，是一辈辈传下来的味道','生活化场景，热气逆光'],
+      ['26-30秒','手捧礼盒看镜头','按根按克分级、顺丰特快，节庆礼赠提前订，数量不多','正面中景，字幕留订购方式']
+    ],
+    titles:['一根理县虫草的装盒全过程，太费手工了','送长辈的体面，藏在这一盒手作净制里','采挖季只有几十天，理县虫草是这样来的'],
+    props:['手机+微距/近拍模式','小毛刷、竹匾','织锦礼盒、产地卡','炖盅或玻璃杯（生活化道具）','纯色木桌背景，避免杂乱']
+  },
+  hetao:{
+    shots:[
+      ['0-3秒','手捏一颗带青皮的核桃，现场用刀脱皮，露出褐纹硬壳','（字幕）你吃的核桃漂过白吗？看看山里人家自己吃的','近景，脱皮动作干脆有冲击力'],
+      ['3-8秒','满地青皮核桃、一筐筐脱皮后新货的真实场景','理县高山村寨，9月新核桃下树，今年收成不错','广角俯拍丰收现场'],
+      ['8-14秒','对比漂白核桃与本褐色核桃，再徒手/夹子剥开，果仁饱满','自然晾晒、不漂白不熏染，外壳是本来的颜色，果仁又饱满又香','左右对比构图，剥壳特写'],
+      ['14-20秒','屋顶/院坝摊晾核桃，老人翻拣','带青皮现脱、当场晾晒，卖相朴素，吃的就是这口原香','中景，阳光侧逆光'],
+      ['20-26秒','装5斤布袋、封箱；桌上摆坚果、打豆浆场景','常温能放一冬，打豆浆、当零食、过年待客都行','快剪多场景，体现耐放多用'],
+      ['26-30秒','抱着一袋核桃看镜头','5斤装69元、运费便宜，新货数量足，想尝鲜的评论区留言','正面中景，价格字幕加大']
+    ],
+    titles:['不漂白的高山核桃，剥开才知道什么叫香','今年新核桃下树！山里人家自己就吃这种','5斤装高山核桃，全家吃一冬的原味坚果'],
+    props:['手机','带青皮的鲜核桃+脱皮小刀','漂白核桃对比样本（如有）','夹子、竹筐、布袋','阳光充足的院坝/屋顶']
+  }
+};
+function genVideo(){
+  const s=SCRIPTS[state.vidProd], d=PRODUCTS[state.vidProd];
+  const rows=s.shots.map((sh,i)=>'<tr><td class="shot-no">'+String(i+1).padStart(2,'0')+'</td><td class="shot-time">'+sh[0]+'</td><td><b>'+sh[1]+'</b></td><td style="color:var(--ink-soft)">'+sh[2]+'</td><td style="color:var(--ink-faint);font-size:12.5px">'+sh[3]+'</td></tr>').join('');
+  const html=
+    '<div style="padding:16px 18px 8px;overflow-x:auto"><table class="shot-table"><colgroup><col style="width:46px"><col style="width:70px"><col style="width:26%"><col><col style="width:24%"></colgroup>'+
+    '<thead><tr><th>镜</th><th>时长</th><th>拍什么画面</th><th>口播 / 字幕</th><th>拍摄提示</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<div style="padding:6px 18px 18px">'+
+    '<div class="card-title" style="margin-top:14px">三个备选标题（选一个）</div>'+
+    s.titles.map((t,i)=>'<div class="title-option"><span class="t-badge">标题'+(i+1)+'</span><span>'+t+'</span></div>').join('')+
+    '<div class="card-title" style="margin-top:16px">话题标签</div><div class="script-tags">'+d.tags.map(t=>'<span class="tag tag-teal">'+t+'</span>').join('')+'</div>'+
+    '<div class="card-title" style="margin-top:14px">拍摄道具清单</div><ul class="props-grid">'+s.props.map(p=>'<li>'+p+'</li>').join('')+'</ul>'+
+    '<div class="compliance-line ok" style="margin-top:14px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 5 5L20 7"/></svg>脚本已规避功效与绝对化用语，口播照读即可</div>'+
+    '<div class="result-actions"><button class="btn btn-teal btn-sm" onclick="copyText(document.getElementById(\'videoScriptText\').innerText)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>复制脚本</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="genVideo()">换一组标题</button></div>'+
+    '<div id="videoScriptText" style="display:none">'+s.shots.map((sh,i)=>(i+1)+'（'+sh[0]+'）画面：'+sh[1]+'｜口播：'+sh[2]).join('\n')+'\n标题：'+s.titles.join(' / ')+'\n'+d.tags.join(' ')+'</div></div>';
+  const box=$('#videoResult');
+  box.innerHTML='<div class="result-empty" style="height:160px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:42px;height:42px"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg><div>正在生成分镜…</div></div>';
+  setTimeout(()=>{box.innerHTML=html;box.closest('.card').querySelector('.card-title').textContent='分镜脚本 · '+d.name;},420);
+}
+/* ===================== ECharts 通用 ===================== */
+const EC={teal:'#2a838c',teal2:'#7fb8b4',red:'#b4452f',gold:'#bd862c',green:'#557a4f',gray:'#93a19e',ink:'#22302e',line:'#e5dfd2'};
+const ecFont={fontFamily:'"Noto Sans SC","Microsoft YaHei",sans-serif',color:EC.ink};
+function ec(id){const el=document.getElementById(id);if(!el)return null;if(charts[id]){charts[id].resize();return charts[id];}const c=echarts.init(el);charts[id]=c;return c;}
+const ecBase={textStyle:ecFont,tooltip:{backgroundColor:'#123c42',borderWidth:0,textStyle:{color:'#fff',fontSize:12}},grid:{left:8,right:18,top:30,bottom:8,containLabel:true}};
+
+/* ===================== 经营看板图表 ===================== */
+function initDashCharts(){
+  let c=ec('chartTrend');
+  if(c&&!c.__done){c.__done=1;c.setOption({...ecBase,
+    tooltip:{...ecBase.tooltip,trigger:'axis',valueFormatter:v=>'¥'+v.toLocaleString()},
+    xAxis:{type:'category',data:['3月','4月','5月','6月','7月','8月'],axisLine:{lineStyle:{color:EC.line}},axisLabel:{color:'#5b6c69'}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:'#efeadd'}},axisLabel:{color:'#8a9895',formatter:v=>v/10000+'万'}},
+    series:[{type:'line',smooth:true,symbolSize:8,lineStyle:{width:3,color:EC.teal},itemStyle:{color:EC.teal},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(42,131,140,.32)'},{offset:1,color:'rgba(42,131,140,.02)'}])},
+      data:[4000,6000,18000,12000,8000,36200],
+      markPoint:{symbolSize:46,label:{fontSize:10,color:'#fff'},data:[{name:'虫草季',coord:['5月',18000],value:'虫草'},{name:'西梅季',coord:['8月',36200],value:'西梅'}],itemStyle:{color:EC.gold}}
+    }]});}
+  c=ec('chartChannel');
+  if(c&&!c.__done){c.__done=1;c.setOption({
+    tooltip:{...ecBase.tooltip,trigger:'item',formatter:'{b}：{c}%'},
+    legend:{bottom:0,itemWidth:12,itemHeight:12,textStyle:{color:'#5b6c69',fontSize:11.5}},
+    series:[{type:'pie',radius:['46%','70%'],center:['50%','44%'],avoidLabelOverlap:true,
+      itemStyle:{borderColor:'#fff',borderWidth:2},label:{show:false},
+      color:[EC.teal,EC.gold,EC.red,EC.green,EC.gray],
+      data:[{name:'朋友圈/微信群',value:42},{name:'熟客复购',value:26},{name:'抖音/视频号',value:14},{name:'线下/收购商',value:12},{name:'电商平台',value:6}]}]});}
+  c=ec('chartProduct');
+  if(c&&!c.__done){c.__done=1;c.setOption({...ecBase,
+    tooltip:{...ecBase.tooltip,trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:v=>v+'万元'},
+    xAxis:{type:'category',data:['高山西梅','冬虫夏草','高山核桃'],axisLine:{lineStyle:{color:EC.line}},axisLabel:{color:'#5b6c69'}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:'#efeadd'}},axisLabel:{color:'#8a9895',formatter:'{value}万'}},
+    series:[{type:'bar',barWidth:'46%',
+      itemStyle:{borderRadius:[7,7,0,0],color:p=>[EC.teal,EC.gold,EC.red][p.dataIndex]},
+      label:{show:true,position:'top',color:'#22302e',fontWeight:600,formatter:'{c}万'},
+      data:[4.4,3.2,0.8]}]});}
+}
+
+/* ===================== 成本定价 ===================== */
+const COST_DATA={
+  ximei:{label:'高山西梅 · 5斤礼盒',range:[60,130],price:89,
+    items:[['果品成本（自种/收购）',35,'元 / 盒'],['采摘与分选人工',6,'元 / 盒'],['包装（泡沫托+纸箱）',10,'元 / 盒'],['快递运费',15,'元 / 盒'],['损耗与售后',4,'元 / 盒']]},
+  chongcao:{label:'冬虫夏草 · 10根礼盒',range:[250,600],price:398,
+    items:[['虫草原料（按品级）',240,'元 / 盒'],['织锦礼盒与产地卡',40,'元 / 盒'],['手工分级与净制',15,'元 / 盒'],['顺丰/邮政快递',12,'元 / 盒']]},
+  hetao:{label:'高山干核桃 · 5斤袋',range:[45,110],price:69,
+    items:[['核桃原料（约6元/斤）',30,'元 / 袋'],['脱皮与晾晒人工',6,'元 / 袋'],['包装袋',4,'元 / 袋'],['快递运费',12,'元 / 袋'],['损耗',3,'元 / 袋']]}
+};
+function switchPrice(p){state.priceProd=p;$all('#priceProdPills .pill').forEach(x=>x.classList.toggle('active',x.dataset.prod===p));
+  const cfg=COST_DATA[p];$('#priceRange').min=cfg.range[0];$('#priceRange').max=cfg.range[1];$('#priceRange').value=cfg.price;renderCosts();calcPrice();}
+function renderCosts(){
+  const cfg=COST_DATA[state.priceProd];
+  $('#costInputs').innerHTML=cfg.items.map((it,i)=>
+    '<div class="cost-row"><span>'+it[0]+'</span><input class="input" type="number" min="0" step="0.5" value="'+it[1]+'" data-i="'+i+'" oninput="calcPrice()"><span class="c-unit">'+it[2]+'</span></div>').join('');
+}
+function calcPrice(){
+  const cfg=COST_DATA[state.priceProd];
+  let cost=0;
+  $all('#costInputs input').forEach(inp=>{cost+=parseFloat(inp.value)||0;});
+  const price=parseFloat($('#priceRange').value)||0;
+  const profit=price-cost, margin=cost>0?Math.round(profit/price*100):0;
+  $('#priceLabel').textContent='¥'+price+' / 单';
+  $('#rCost').textContent='¥'+cost.toFixed(0);
+  $('#rProfit').textContent=(profit>=0?'¥':'-¥')+Math.abs(profit).toFixed(0);
+  $('#rMargin').textContent=margin+'%';
+  $('#breakEven').textContent=profit>0?Math.ceil(500/profit)+' 单':'—';
+  const low=Math.round(cost*1.25),high=Math.round(cost*1.5);
+  $('#priceAdvice').innerHTML='按当前成本，建议零售价区间约 <b style="color:var(--red)">¥'+low+' – ¥'+high+'</b>（毛利率约 20%–33%，含生鲜礼盒常见损耗与议价空间）。'+
+    (price<low?'<br><span style="color:var(--red)">当前售价偏低，可能覆盖不了损耗与人工，建议上调或压缩包装/快递成本。</span>':
+     price>high?'<br><span style="color:var(--gold)">当前售价偏高，适合做精品礼盒，需用包装与故事支撑价值感。</span>':
+     '<br><span style="color:var(--green)">当前售价处于合理区间。</span>')+
+    '<br>生鲜水果别忘了把坏果赔付、旺季快递涨价也算进损耗；虫草这类高客单产品，建议价主要由品级和当年行情决定。';
+  // 成本结构图
+  const c=ec('chartCost');
+  if(c){c.setOption({tooltip:{...ecBase.tooltip,trigger:'item',formatter:'{b}：¥{c}（{d}%）'},
+    series:[{type:'pie',radius:['42%','68%'],center:['50%','50%'],itemStyle:{borderColor:'#fff',borderWidth:2},label:{fontSize:11.5,color:'#5b6c69',formatter:'{b}\n{d}%'},
+      color:[EC.teal,EC.gold,EC.red,EC.green,EC.gray],
+      data:cfg.items.map(it=>({name:it[0].split('（')[0],value:parseFloat(document.querySelector('#costInputs input[data-i="'+cfg.items.indexOf(it)+'"]')?.value)||it[1]}))}]});}
+}
+
+/* ===================== 合规检查 ===================== */
+const RISK_RULES=[
+  {k:['治疗','治愈','治病','抗癌','防癌','抗肿瘤','降血糖','降血压','降三高','壮阳','补肾','治咳嗽','止咳','增强免疫力','提高免疫','药效','药用','包治','根治','神药','治病效果'],level:'high',name:'医疗 / 功效宣称',fix:'普通农产品和食品不能宣称疾病治疗或保健功效，改为描述产地、口感与食用方式，如“煲汤时放几根，是家里习惯的味道”。'},
+  {k:['最好','最佳','第一','顶级','极品','万能','永久','100%','纯天然','无添加','特效'],level:'high',name:'绝对化 / 无法证明的用语',fix:'删除极限词，改为可核实的表达，如“今年新货、自然晾晒、现摘现发”。'},
+  {k:['野生','纯野生'],level:'mid',name:'野生资源表述',fix:'虫草等野生采集资源应如实说明采挖来源与合规性，不渲染“纯野生”“稀缺”进行炒作。'},
+  {k:['马上断货','抢疯了','秒杀','最后机会','不买后悔'],level:'mid',name:'制造焦虑 / 诱导',fix:'用真实库存与上市节奏替代，如“本季数量有限，按订单顺序发货”。'},
+  {k:['无效退款','包退包治','特供','专供'],level:'mid',name:'承诺性 / 资质性用语',fix:'售后政策要具体可兑现；“特供、专供”需有正式授权，否则不要使用。'}
+];
+const SAMPLES={
+  chongcao:'理县纯野生冬虫夏草，纯天然无添加！补肾壮阳、抗癌抗肿瘤效果最好，一天几根治咳嗽，增强免疫力，中老年必备神药。极品大根，数量稀少马上断货，是送礼第一选择，无效退款！',
+  ximei:'全世界最好吃的西梅！100%纯天然，吃了降三高、通便减肥，孕妇老人吃了百病消，无效退款，今年最后机会马上断货！'
+};
+function loadSample(p){$('#complianceInput').value=SAMPLES[p];toast('已载入示例，点「扫描风险表述」');}
+function checkCompliance(){
+  const text=$('#complianceInput').value.trim();
+  if(!text){toast('请先粘贴一段文案');return;}
+  const found=[];
+  RISK_RULES.forEach(r=>{const hits=[...new Set(r.k.filter(w=>text.includes(w)))];if(hits.length)found.push({...r,hits});});
+  let html='';
+  if(!found.length){
+    html='<div class="risk-item ok"><div class="risk-badge">通过</div><div><b>未发现明显违规表述。</b><br>仍请确保产地、规格、价格真实准确，发货与售后承诺可以兑现。</div></div>';
+  }else{
+    const hi=found.filter(f=>f.level==='high').length, mi=found.filter(f=>f.level==='mid').length;
+    found.forEach(f=>{
+      html+='<div class="risk-item '+f.level+'"><div class="risk-badge">'+(f.level==='high'?'高风险':'注意')+'</div><div>'+
+        '<b>'+f.name+'</b>，命中：<span class="r-quote">'+f.hits.join('、')+'</span>'+
+        '<div class="r-fix">建议改法：'+f.fix+'</div></div></div>';
+    });
+    html='<div class="risk-item '+(hi?'high':'mid')+'"><div class="risk-badge">'+(hi?'需修改':'建议优化')+'</div><div>共发现 <b>'+hi+'</b> 类高风险、<b>'+mi+'</b> 类需注意的表述，发布前请按上面的建议修改。</div></div>'+html;
+  }
+  html+='<div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-teal btn-sm" onclick="genSafeCopy()">帮我生成一版合规文案</button><button class="btn btn-ghost btn-sm" onclick="checkCompliance()">重新扫描</button></div>';
+  $('#complianceResult').innerHTML=html;
+}
+function genSafeCopy(){
+  const p=$('#complianceInput').value.includes('虫草')||$('#complianceInput').value.includes('西梅')?( $('#complianceInput').value.includes('西梅')?'ximei':'chongcao'):'hetao';
+  state.copyProd=p;state.copyPlat='moments';state.copySps=Object.keys(PRODUCTS[p].sellpoints).slice(0,2);document.getElementById('copyTone').value='plain';$('#copyExtra').value='';
+  goView('copy');setCopyProd(p);setTimeout(genCopy,350);
+  toast('已在智能文案页生成合规版本，可对照修改');
+}
+
+/* ===================== 调研洞察图表 ===================== */
+function barOption(names,vals,color,fmt){return {...ecBase,
+  grid:{left:8,right:30,top:14,bottom:8,containLabel:true},
+  tooltip:{...ecBase.tooltip,trigger:'axis',axisPointer:{type:'shadow'},formatter:p=>p[0].name+'：'+p[0].value+'%'},
+  xAxis:{type:'value',max:fmt?60:40,splitLine:{lineStyle:{color:'#efeadd'}},axisLabel:{color:'#8a9895',formatter:'{value}%'}},
+  yAxis:{type:'category',data:names,inverse:true,axisLine:{lineStyle:{color:EC.line}},axisTick:{show:false},axisLabel:{color:'#3d4d4a',fontSize:11.8,width:118,overflow:'break'}},
+  series:[{type:'bar',barWidth:'58%',itemStyle:{borderRadius:[0,6,6,0],color:color},label:{show:true,position:'right',formatter:'{c}%',color:'#5b6c69',fontSize:11.5},data:vals}]};}
+function initInsCharts(){
+  let c=ec('chartChannel2');
+  if(c&&!c.__done){c.__done=1;c.setOption(barOption(['收购商/合作社','朋友圈/微信群','集市门店线下','熟人介绍复购','抖音/视频号','电商平台店铺'],[56.8,47.3,45.9,41.9,18.9,13.5],EC.teal,1));}
+  c=ec('chartIntent');
+  if(c&&!c.__done){c.__done=1;c.setOption({
+    tooltip:{...ecBase.tooltip,trigger:'item',formatter:'{b}：{c}人（{d}%）'},
+    legend:{bottom:0,itemWidth:12,itemHeight:12,textStyle:{color:'#5b6c69',fontSize:11.5}},
+    series:[{type:'pie',radius:['48%','72%'],center:['50%','44%'],itemStyle:{borderColor:'#fff',borderWidth:2},label:{show:true,formatter:'{d}%',color:'#3d4d4a',fontWeight:600},
+      color:[EC.teal,EC.red,EC.gold,EC.gray],
+      data:[{name:'愿意自己尝试',value:31},{name:'教会后愿意尝试',value:40},{name:'希望他人协助',value:12},{name:'暂无需求',value:17}]}]});}
+  c=ec('chartObstacle');
+  if(c&&!c.__done){c.__done=1;c.setOption(barOption(['不会拍摄图片/短视频','不知如何介绍产品','不会选宣传销售渠道','顾客少、复购难','包装运费物流困难','成本库存收支不清'],[43.6,35.9,26.9,25.6,24.4,20.5],EC.red));}
+  c=ec('chartFeature');
+  if(c&&!c.__done){c.__done=1;c.setOption(barOption(['宣传文案生成','拍照提示与短视频脚本','销量库存收支看板','语音输入简单记账','成本运费利润试算','客服售后回复','夸大表述提示'],[31,31,30,28,13,13,13],EC.gold));}
+}
+window.addEventListener('resize',()=>Object.values(charts).forEach(c=>c.resize()));
+
+/* ===================== 60秒演示引导 ===================== */
+const GUIDE=[
+  {title:'欢迎使用理农通',text:'这是为理县农户准备的乡村经营助手：管产品、写文案、出脚本、算成本、看数据、守合规。首页六个工具一目了然，数据都已预置好，跟着我点 7 步就能看完全部功能。',spot:'.tool-grid',run:()=>goView('home')},
+  {title:'第 1 站 · 产品档案',text:'三个产品一户一档：高山西梅、冬虫夏草已经在网上卖，高山核桃新货下树、正在筹备宣传。产地、季节、规格、卖点、真实故事都整理好了。',spot:'#prodPills',run:()=>goView('products')},
+  {title:'第 2 站 · 智能文案',text:'选好产品和平台，一键生成能直接复制发布的文案；每次点「换一条」结果都不一样，还会自动提示合规。请看生成过程。',spot:'#view-copy .btn-primary',run:()=>{goView('copy');setCopyProd('ximei');setCopyPlat('moments');setTimeout(genCopy,500);}},
+  {title:'第 3 站 · 短视频脚本',text:'调研里一半农户最怕拍视频。助手把一条 30 秒视频拆成分镜表：画面、口播、拍摄提示、标题、话题和道具，手机照着拍就行。',spot:'#view-video .card-pad',run:()=>{goView('video');setVidProd('ximei');setTimeout(genVideo,500);}},
+  {title:'第 4 站 · 经营看板',text:'订单、销售额、渠道结构、库存预警一屏看清。右下角红色预警提示：800 斤新核桃下树，要抓紧铺开宣传。',spot:'#view-dashboard .dash-grid',run:()=>goView('dashboard')},
+  {title:'第 5 站 · 合规检查',text:'虫草宣传最容易在功效和极限词上踩坑。我们载入一段典型的违规文案，助手会逐条标红、说明原因并给出改法。',spot:'#complianceResult',run:()=>{goView('compliance');loadSample('chongcao');setTimeout(checkCompliance,500);}},
+  {title:'最后一站 · 年度传承',text:'项目已连续两年走进理县，未来拟与理县团委共建年度机制，每年招募入党、入团积极分子和三好学生入村，一届带一届，把工具和素材留在村寨。演示到此结束，你可以自由点击体验。',spot:'#view-legacy .timeline',run:()=>goView('legacy')}
+];
+let guideIdx=-1,guideTimer=null;
+function startGuide(i){
+  endGuide(false);guideIdx=i;showGuide();
+}
+function showGuide(){
+  const g=GUIDE[guideIdx];if(!g)return;
+  g.run&&g.run();
+  $('#gStep').textContent='第 '+(guideIdx+1)+' / '+GUIDE.length+' 步';
+  $('#gTitle').textContent=g.title;$('#gText').textContent=g.text;
+  $('#gNext').textContent=guideIdx===GUIDE.length-1?'完成演示':'下一步';
+  $('#guide').classList.add('show');
+  clearTimeout(guideTimer);
+  guideTimer=setTimeout(()=>setSpot(g.spot),420);
+}
+function setSpot(sel){
+  document.querySelectorAll('.spotlight').forEach(e=>e.classList.remove('spotlight'));
+  const el=document.querySelector(sel);
+  if(el){el.classList.add('spotlight');el.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+function guideNext(){
+  clearTimeout(guideTimer);
+  document.querySelectorAll('.spotlight').forEach(e=>e.classList.remove('spotlight'));
+  if(guideIdx>=GUIDE.length-1){endGuide();toast('演示完成，欢迎自由体验');return;}
+  startGuide(guideIdx+1);
+}
+function endGuide(showMsg){
+  $('#guide').classList.remove('show');
+  clearTimeout(guideTimer);
+  document.querySelectorAll('.spotlight').forEach(e=>e.classList.remove('spotlight'));
+  guideIdx=-1;
+}
+function resetDemo(){
+  if(confirm('将清空本次演示中修改的内容并刷新页面，确定吗？')){location.reload();}
+}
+/* 初始化 */
+renderCosts();calcPrice();
+</script>
+</body>
+</html>
